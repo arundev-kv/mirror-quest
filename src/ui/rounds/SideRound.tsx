@@ -57,7 +57,7 @@ export function SideRound({ round, onAnswer, demo, onDemoDone, feedback }: Round
             { x: round.target === 'left' ? 25 : 75, y: 62, tap: true },
             { x: round.target === 'left' ? 25 : 75, y: 62 },
           ]}
-          duration={2.6}
+          duration={3.9}
           onDone={onDemoDone}
         />
       )}

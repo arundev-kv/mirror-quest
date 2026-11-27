@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeBest, scoreLevel, starsFor, type RoundOutcome } from '../scoring';
+import { mergeBest, scoreLevel, speedWeightForAge, starsFor, type RoundOutcome } from '../scoring';
 
 const ok = (over: Partial<RoundOutcome> = {}): RoundOutcome => ({
   correct: true,
@@ -15,12 +15,16 @@ describe('scoring', () => {
     expect(r.score).toBe(100);
     expect(r.stars).toBe(3);
   });
-  it('weights accuracy 70% and speed 30%', () => {
-    const slow = scoreLevel([ok({ timeMs: 12_000 })]);
-    expect(slow.score).toBe(70);
+  it('weights speed 10% for ages 3-4 and 20% for ages 5-6', () => {
+    expect(speedWeightForAge(3)).toBe(0.1);
+    expect(speedWeightForAge(4)).toBe(0.1);
+    expect(speedWeightForAge(5)).toBe(0.2);
+    const slow = [ok({ timeMs: 12_000 })]; // speed 0, accuracy 1
+    expect(scoreLevel(slow, 0.1).score).toBe(90);
+    expect(scoreLevel(slow, 0.2).score).toBe(80);
   });
   it('gives half credit on the second try', () => {
-    expect(scoreLevel([ok({ tries: 2 })]).score).toBe(65);
+    expect(scoreLevel([ok({ tries: 2 })], 0.2).score).toBe(60);
   });
   it('always gives at least one star for finishing', () => {
     expect(starsFor(0)).toBe(1);

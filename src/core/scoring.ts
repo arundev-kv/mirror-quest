@@ -19,8 +19,13 @@ export interface LevelResult {
   totalTimeMs: number;
 }
 
-export const ACCURACY_WEIGHT = 0.7;
-export const SPEED_WEIGHT = 0.3;
+/**
+ * Speed matters little: time pressure raises anxiety and errors in young children with
+ * learning difficulties. Younger children get even less weight on speed.
+ */
+export function speedWeightForAge(age: number): number {
+  return age <= 4 ? 0.1 : 0.2;
+}
 /** Minimum score to unlock the next level (2 stars). */
 export const UNLOCK_SCORE = 70;
 export const THREE_STAR_SCORE = 90;
@@ -44,12 +49,12 @@ export function starsFor(score: number): Stars {
   return 1; // finishing a level always earns a star
 }
 
-export function scoreLevel(outcomes: RoundOutcome[]): LevelResult {
+export function scoreLevel(outcomes: RoundOutcome[], speedWeight = 0.2): LevelResult {
   if (outcomes.length === 0) return { score: 0, accuracy: 0, speed: 0, stars: 1, totalTimeMs: 0 };
   const accuracy = outcomes.reduce((a, o) => a + roundAccuracy(o), 0) / outcomes.length;
   // Speed only counts for rounds the child got right, so rushing doesn't pay.
   const speed = outcomes.reduce((a, o) => a + (o.correct ? roundSpeed(o) : 0), 0) / outcomes.length;
-  const score = Math.round(100 * (ACCURACY_WEIGHT * accuracy + SPEED_WEIGHT * speed));
+  const score = Math.round(100 * ((1 - speedWeight) * accuracy + speedWeight * speed));
   return {
     score,
     accuracy,

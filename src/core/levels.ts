@@ -95,11 +95,11 @@ export type RoundKind = Round['kind'];
 
 /** Speed target per round kind, in ms. Generous: these are young children. */
 export const SPEED_TARGET_MS: Record<RoundKind, number> = {
-  side: 4_000,
-  facing: 6_000,
-  pick: 5_000,
-  judge: 5_000,
-  write: 14_000,
+  side: 6_000,
+  facing: 9_000,
+  pick: 7_500,
+  judge: 7_500,
+  write: 21_000,
 };
 
 export interface RoundRecipe {

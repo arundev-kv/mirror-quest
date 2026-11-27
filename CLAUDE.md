@@ -35,7 +35,8 @@ Vitest (unit) · Playwright (e2e) · oxlint + Prettier · Netlify hosting.
 - **Daily limit.** 30 min of ACTIVE play per profile per day (tab visible + input in the last 60 s). Sunset countdown from
   25 min; at 30 min a running level may finish (max 2 min grace), then the sleep screen. Resets at local midnight.
   There is **no unlock**, not even for parents. Clock moved backwards keeps the stored usage.
-- **Scoring.** 70% accuracy + 30% speed → 0–100. Stars: 1 for finishing, 2 at ≥70 (unlocks the next level), 3 at ≥90.
+- **Scoring.** Accuracy + a small speed share → 0–100 (speed 10% for ages 3–4, 20% for ages 5–6; generous speed
+  targets; calm pauses between rounds). A demo never advances by itself: the child taps "Your turn". Stars: 1 for finishing, 2 at ≥70 (unlocks the next level), 3 at ≥90.
   Retries keep the best score.
 - **Input.** Laptop first (mouse/trackpad) but use Pointer Events so touch and stylus work. Hit targets ≥ 64 px.
 

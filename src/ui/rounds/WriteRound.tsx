@@ -98,7 +98,7 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
                 color="#4f9d4a"
                 strokeWidth={10}
                 animateDraw
-                drawDuration={1.1}
+                drawDuration={1.6}
                 showStart
               />
             ) : (
@@ -156,7 +156,7 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
           </IconButton>
         </div>
       </div>
-      {demo && <DemoTimer ms={glyph.strokes.length * 1350 + 900} onDone={onDemoDone} />}
+      {demo && <DemoTimer ms={glyph.strokes.length * 1900 + 1200} onDone={onDemoDone} />}
     </div>
   );
 }

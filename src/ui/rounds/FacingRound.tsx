@@ -117,7 +117,7 @@ export function FacingRound({ round, onAnswer, demo, onDemoDone, feedback }: Rou
             { x: gx, y: 46, tap: true },
             { x: gx, y: 46 },
           ]}
-          duration={2.8}
+          duration={4.2}
           onDone={onDemoDone}
         />
       )}

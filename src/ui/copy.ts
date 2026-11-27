@@ -44,3 +44,4 @@ export const FEEDBACK_TEXT: Record<FeedbackKind, string> = {
 };
 
 export const WATCH_WORD = 'Watch';
+export const YOUR_TURN_WORD = 'Your turn';

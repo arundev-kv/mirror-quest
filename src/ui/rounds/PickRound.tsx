@@ -60,7 +60,7 @@ export function PickRound({ round, onAnswer, demo, onDemoDone, feedback }: Round
             { x: gx, y: 68, tap: true },
             { x: gx, y: 68 },
           ]}
-          duration={2.6}
+          duration={3.9}
           onDone={onDemoDone}
         />
       )}

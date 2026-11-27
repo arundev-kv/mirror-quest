@@ -13,6 +13,8 @@ export async function createProfile(page: Page, name = 'Mia', age = 5) {
 }
 
 async function skipDemo(page: Page) {
+  const turn = page.getByTestId('your-turn');
+  if (await turn.isVisible().catch(() => false)) await turn.click();
   const start = page.getByTestId('intro-start');
   if (await start.isVisible().catch(() => false)) await start.click();
   const skip = page.getByTestId('skip-demo');
@@ -86,8 +88,13 @@ export async function playLevel(page: Page, correct: boolean) {
     const round = page.locator(`[data-testid="round"][data-index="${i}"]`);
     await expect
       .poll(
-        async () =>
-          (await results.count()) > 0 || ((await round.count()) > 0 && (await page.getByTestId('round').count()) === 1),
+        async () => {
+          await skipDemo(page); // a demo waits for "Your turn" before the next round kind
+          return (
+            (await results.count()) > 0 ||
+            ((await round.count()) > 0 && (await page.getByTestId('round').count()) === 1)
+          );
+        },
         { timeout: 15000 },
       )
       .toBe(true);

@@ -3,11 +3,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { audio } from '../../audio/engine';
 import { speak, stopSpeaking } from '../../audio/voice';
 import { generateRounds, getLevel, SPEED_TARGET_MS, type Round, type RoundKind } from '../../core/levels';
-import { scoreLevel, type RoundOutcome } from '../../core/scoring';
+import { scoreLevel, speedWeightForAge, type RoundOutcome } from '../../core/scoring';
 import type { Profile } from '../../core/types';
 import { useApp } from '../../state/appStore';
 import { useUi } from '../../state/uiStore';
-import { FEEDBACK_TEXT, instructionFor, instructionSpeech, WATCH_WORD, type FeedbackKind } from '../copy';
+import {
+  FEEDBACK_TEXT,
+  instructionFor,
+  instructionSpeech,
+  WATCH_WORD,
+  YOUR_TURN_WORD,
+  type FeedbackKind,
+} from '../copy';
 import { IconButton } from '../components/IconButton';
 import { Instruction } from '../components/Instruction';
 import { Mascot, type MascotMood } from '../components/Mascot';
@@ -34,7 +41,8 @@ function RoundView(props: RoundProps<Round>) {
   }
 }
 
-const FEEDBACK_MS = { correct: 1000, tryAgain: 1400, reveal: 2800 };
+/** Calm pacing: time to enjoy a right answer, or to look at a hint, before moving on. */
+const FEEDBACK_MS = { correct: 1600, tryAgain: 2000, flip: 2800, reveal: 3500 };
 
 export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Profile }) {
   const level = getLevel(levelId)!;
@@ -58,6 +66,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
   const [showIntro, setShowIntro] = useState(true);
   const [feedbackKind, setFeedbackKind] = useState<FeedbackKind | null>(null);
   const [demoKind, setDemoKind] = useState<RoundKind | null>(rounds[0].kind);
+  const [demoFinished, setDemoFinished] = useState(false);
   const seenKinds = useRef(new Set<RoundKind>([rounds[0].kind]));
   const outcomes = useRef<RoundOutcome[]>([]);
   const roundStart = useRef(0);
@@ -81,22 +90,22 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
   const spokenRound = demoKind ? (demoRounds.get(demoKind) ?? round) : round;
   useEffect(() => {
     if (showIntro) speak(`Level ${level.number}. ${level.title}. ${level.intro}`);
-    else if (demoKind) speak(WATCH_WORD);
+    else if (demoKind) speak(demoFinished ? YOUR_TURN_WORD : WATCH_WORD);
     else speak(instructionSpeech(spokenRound));
     // Speak once per new round or demo, not on every re-render.
-  }, [showIntro, demoKind, index]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showIntro, demoKind, demoFinished, index]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (feedbackKind) speak(FEEDBACK_TEXT[feedbackKind]);
   }, [feedbackKind]);
   useEffect(() => () => stopSpeaking(), []);
 
   const finish = useCallback(() => {
-    const result = scoreLevel(outcomes.current);
+    const result = scoreLevel(outcomes.current, speedWeightForAge(profile.age));
     const previous = profile.levels[level.id];
     recordResult(level.id, result);
     audio.play('complete');
     go({ name: 'results', levelId: level.id, result, previous });
-  }, [go, level.id, profile.levels, recordResult]);
+  }, [go, level.id, profile.age, profile.levels, recordResult]);
 
   const advance = useCallback(() => {
     setFeedback(null);
@@ -150,7 +159,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       setMood('thinking');
       setFeedback('tryAgain');
       setFeedbackKind(a.feedback === 'mirrored' || a.feedback === 'flipped' ? a.feedback : 'tryAgain');
-      later(a.feedback === 'mirrored' || a.feedback === 'flipped' ? 2200 : FEEDBACK_MS.tryAgain, () => {
+      later(a.feedback === 'mirrored' || a.feedback === 'flipped' ? FEEDBACK_MS.flip : FEEDBACK_MS.tryAgain, () => {
         setFeedback(null);
         setFeedbackKind(null);
         setTries(2);
@@ -166,11 +175,12 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
     later(FEEDBACK_MS.reveal, advance);
   };
 
-  const demoDone = () => {
-    later(500, () => {
-      setDemoKind(null);
-      roundStart.current = performance.now();
-    });
+  // The demo never moves on by itself: the child (or grown-up) confirms with "Your turn".
+  const demoDone = () => setDemoFinished(true);
+  const startRound = () => {
+    setDemoKind(null);
+    setDemoFinished(false);
+    roundStart.current = performance.now();
   };
 
   return (
@@ -188,7 +198,10 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
         </div>
         <IconButton
           label="show me how"
-          onClick={() => setDemoKind(round.kind)}
+          onClick={() => {
+            setDemoFinished(false);
+            setDemoKind(round.kind);
+          }}
           testId="level-help"
           size={60}
           disabled={!!demoKind}
@@ -202,8 +215,8 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
 
       {!showIntro && (
         <Instruction
-          segments={instructionFor(demoKind ? (demoRounds.get(demoKind) ?? round) : round)}
-          hint={demoKind ? WATCH_WORD : null}
+          segments={demoKind ? [demoFinished ? YOUR_TURN_WORD : WATCH_WORD] : instructionFor(round)}
+          hint={null}
           feedback={feedbackKind ? FEEDBACK_TEXT[feedbackKind] : null}
           onReplay={() => speak(instructionSpeech(spokenRound))}
         />
@@ -254,15 +267,38 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
                 onDemoDone={demoDone}
                 feedback={null}
               />
+              <span className="demo-badge" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24">
+                  <path
+                    d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
+                    fill="none"
+                    stroke="#2f86c4"
+                    strokeWidth="2"
+                  />
+                  <circle cx="12" cy="12" r="3" fill="#2f86c4" />
+                </svg>
+                {WATCH_WORD}
+              </span>
+              {demoFinished && (
+                <motion.div
+                  className="your-turn"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <IconButton label="your turn" variant="primary" size={110} onClick={startRound} testId="your-turn">
+                    <svg width="50" height="50" viewBox="0 0 24 24">
+                      <path d="M8 5l11 7-11 7z" fill="#fff" />
+                    </svg>
+                  </IconButton>
+                  <strong>{YOUR_TURN_WORD}</strong>
+                </motion.div>
+              )}
               <button
                 type="button"
                 className="skip-demo"
                 aria-label="skip demo"
                 data-testid="skip-demo"
-                onClick={() => {
-                  setDemoKind(null);
-                  roundStart.current = performance.now();
-                }}
+                onClick={startRound}
               >
                 <svg width="28" height="28" viewBox="0 0 24 24">
                   <path d="M6 5l8 7-8 7zM16 5h2v14h-2z" fill="#8fa3b5" />

@@ -89,7 +89,7 @@ export function JudgeRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
             { x: gx, y: 82, tap: true },
             { x: gx, y: 82 },
           ]}
-          duration={2.6}
+          duration={3.9}
           onDone={onDemoDone}
         />
       )}

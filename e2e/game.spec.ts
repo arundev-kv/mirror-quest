@@ -17,6 +17,12 @@ test('play level 1 perfectly and unlock level 2', async ({ page }) => {
   await expect(page.getByTestId('intro')).toContainText('Left and Right'); // written intro first
   await page.getByTestId('intro-start').click();
   await expect(page.getByTestId('demo')).toBeVisible(); // then the ghost-hand demo
+  // The demo never moves on by itself: it waits for "Your turn".
+  await expect(page.getByTestId('your-turn')).toBeVisible({ timeout: 15_000 });
+  await page.waitForTimeout(2000);
+  await expect(page.getByTestId('round')).toHaveCount(0);
+  await page.getByTestId('your-turn').click();
+  await expect(page.getByTestId('round')).toHaveAttribute('data-index', '0');
   await expect(page.getByTestId('instruction')).toContainText(/^(LEFT|RIGHT)/); // one word in play
   await playLevel(page, true);
   // All answers right: accuracy alone gives 70+, speed (machine-dependent) decides 2 or 3 stars.
