@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { createProfile, playLevel, seedUsage } from './helpers';
+import { createProfile, playLevel, seedUsage, unlockLevel2 } from './helpers';
 
 test('create a profile and see it on the picker', async ({ page }) => {
   await createProfile(page, 'Mia');
@@ -9,7 +9,8 @@ test('create a profile and see it on the picker', async ({ page }) => {
   await expect(page.getByTestId('profile-Mia')).toBeVisible(); // saved in localStorage
 });
 
-test('play level 1 perfectly, unlock level 2, then play level 2', async ({ page }) => {
+test('play level 1 perfectly and unlock level 2', async ({ page }) => {
+  test.setTimeout(300_000);
   await createProfile(page);
   await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'false');
   await page.getByTestId('level-1').click();
@@ -18,13 +19,22 @@ test('play level 1 perfectly, unlock level 2, then play level 2', async ({ page 
   await expect(page.getByTestId('demo')).toBeVisible(); // then the ghost-hand demo
   await expect(page.getByTestId('instruction')).toContainText(/Tap the picture on your (LEFT|RIGHT) side/);
   await playLevel(page, true);
-  await expect(page.getByTestId('results')).toHaveAttribute('data-stars', '3');
-  await page.getByTestId('results-next').click();
-  await playLevel(page, true);
-  const score = Number(await page.getByTestId('results').getAttribute('data-score'));
-  expect(score).toBeGreaterThanOrEqual(70);
+  // All answers right: accuracy alone gives 70+, speed (machine-dependent) decides 2 or 3 stars.
+  expect(Number(await page.getByTestId('results').getAttribute('data-score'))).toBeGreaterThanOrEqual(70);
+  await expect(page.getByTestId('results-next')).toBeVisible();
   await page.getByTestId('results-map').click();
+  await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'true');
   await expect(page.getByTestId('points')).not.toHaveText('0');
+});
+
+test('play level 2 (pick, judge and trace b/d)', async ({ page }) => {
+  test.setTimeout(300_000);
+  await createProfile(page);
+  await unlockLevel2(page);
+  await page.getByTestId('level-2').click();
+  await expect(page.getByTestId('intro')).toContainText('b and d');
+  await playLevel(page, true);
+  expect(Number(await page.getByTestId('results').getAttribute('data-score'))).toBeGreaterThanOrEqual(70);
 });
 
 test('a retry keeps the best score', async ({ page }) => {

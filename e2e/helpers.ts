@@ -29,7 +29,7 @@ export async function drawGlyph(page: Page, glyphId: string, mirror = false) {
     }));
     await page.mouse.move(pts[0].x, pts[0].y);
     await page.mouse.down();
-    for (const p of pts.slice(1).filter((_, i, a) => i % 2 === 0 || i === a.length - 1))
+    for (const p of pts.slice(1).filter((_, i, a) => i % 3 === 0 || i === a.length - 1))
       await page.mouse.move(p.x, p.y);
     await page.mouse.up();
   }
@@ -115,4 +115,24 @@ export async function seedUsage(page: Page, minutes: number) {
     localStorage.setItem('mirror-quest', JSON.stringify(raw));
   }, minutes);
   await page.reload();
+}
+
+/** Give the first profile a passing Level 1 score so Level 2 is open. */
+export async function unlockLevel2(page: Page) {
+  await page.getByTestId('map-profiles').click();
+  await expect(page.getByTestId('profiles')).toBeVisible();
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem('mirror-quest')!);
+    raw.state.profiles[0].levels.L01 = {
+      bestScore: 80,
+      bestStars: 2,
+      attempts: 1,
+      bestTimeMs: 30000,
+      lastPlayedAt: Date.now(),
+    };
+    localStorage.setItem('mirror-quest', JSON.stringify(raw));
+  });
+  await page.reload();
+  await page.locator('[data-testid^="profile-"]').first().click();
+  await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'true');
 }
