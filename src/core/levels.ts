@@ -9,7 +9,7 @@ import type { Age, Side } from './types';
  * adding a LevelConfig entry, not writing a component.
  */
 
-export type ThemeId = 'meadow' | 'ocean' | 'forest' | 'space' | 'garden' | 'castle';
+export type ThemeId = 'meadow' | 'lake' | 'forest' | 'hut' | 'village' | 'castle';
 
 export interface Theme {
   id: ThemeId;
@@ -22,55 +22,58 @@ export interface Theme {
   music: { root: number; bpm: number; scale: number[] };
 }
 
-/** Muted, low-saturation palettes. No neon, no saturated red. */
+/**
+ * Bright, natural alpine palettes (think sunny mountain meadows): clear sky blue,
+ * fresh grass green, wildflower yellow. Vivid but natural; no neon, no flashing.
+ */
 export const THEMES: Record<ThemeId, Theme> = {
   meadow: {
     id: 'meadow',
-    name: 'Meadow',
-    sky: '#cfe3e8',
-    ground: '#b7cfa6',
-    accent: '#7fa58a',
-    music: { root: 261.63, bpm: 66, scale: [0, 2, 4, 7, 9] },
+    name: 'Mountain meadow',
+    sky: '#8ccbf0',
+    ground: '#7cc46a',
+    accent: '#4f9d4a',
+    music: { root: 261.63, bpm: 72, scale: [0, 2, 4, 7, 9] },
   },
-  ocean: {
-    id: 'ocean',
-    name: 'Ocean',
-    sky: '#d4e4ee',
-    ground: '#a9c8d6',
-    accent: '#6f97ad',
-    music: { root: 220.0, bpm: 60, scale: [0, 2, 5, 7, 9] },
+  lake: {
+    id: 'lake',
+    name: 'Alpine lake',
+    sky: '#94d0f2',
+    ground: '#6fbf63',
+    accent: '#2f86c4',
+    music: { root: 220.0, bpm: 66, scale: [0, 2, 5, 7, 9] },
   },
   forest: {
     id: 'forest',
-    name: 'Forest',
-    sky: '#dfe6d8',
-    ground: '#9fb592',
-    accent: '#6d8c6a',
-    music: { root: 196.0, bpm: 62, scale: [0, 3, 5, 7, 10] },
+    name: 'Pine forest',
+    sky: '#a5d6f0',
+    ground: '#69b05c',
+    accent: '#3d7f3b',
+    music: { root: 196.0, bpm: 66, scale: [0, 3, 5, 7, 10] },
   },
-  space: {
-    id: 'space',
-    name: 'Space',
-    sky: '#3f4766',
-    ground: '#5b6386',
-    accent: '#b8b3d9',
-    music: { root: 174.61, bpm: 56, scale: [0, 2, 4, 7, 11] },
+  hut: {
+    id: 'hut',
+    name: 'Mountain hut',
+    sky: '#9bd0ef',
+    ground: '#86c66f',
+    accent: '#b5703d',
+    music: { root: 233.08, bpm: 70, scale: [0, 2, 4, 7, 9] },
   },
-  garden: {
-    id: 'garden',
-    name: 'Garden',
-    sky: '#ece4d6',
-    ground: '#c9d3a9',
-    accent: '#b39bc4',
-    music: { root: 293.66, bpm: 68, scale: [0, 2, 4, 7, 9] },
+  village: {
+    id: 'village',
+    name: 'Village',
+    sky: '#a9d8f2',
+    ground: '#8ccb72',
+    accent: '#d9822b',
+    music: { root: 293.66, bpm: 74, scale: [0, 2, 4, 7, 9] },
   },
   castle: {
     id: 'castle',
     name: 'Castle',
-    sky: '#e3dde8',
-    ground: '#c2bccb',
-    accent: '#8d86a8',
-    music: { root: 246.94, bpm: 64, scale: [0, 2, 5, 7, 9] },
+    sky: '#a2cff0',
+    ground: '#7fbf68',
+    accent: '#7a62b0',
+    music: { root: 246.94, bpm: 68, scale: [0, 2, 5, 7, 9] },
   },
 };
 
@@ -130,34 +133,42 @@ export interface LevelConfig {
 
 const SIDE_ITEMS = ['🍎', '🌼', '🐞', '🍄', '🦋', '🐣', '🍓', '🐌', '🌰', '🐝'];
 
+/**
+ * Clinical notes (see docs/LEVEL_PLAN.md):
+ * - Stage 1 uses the child's OWN body only. Another person's left/right (a friend facing you)
+ *   develops around age 7-8, so it comes in a late stage.
+ * - b is taught alone, as a stick-family letter ("stick, then bump"). d is taught later from c.
+ *   They are only contrasted once both are learned, to avoid the classic b/d interference.
+ * - Support fades within a stage (errorless learning): hint/guide first, then less.
+ */
 export const LEVELS: LevelConfig[] = [
   {
     id: 'L01',
     number: 1,
     theme: 'meadow',
-    skill: 'Left and right: my left and right, then a friend facing me',
+    skill: 'Left and right on my own body (the left hand makes an L)',
     icon: '🖐️',
     title: 'Left and Right',
     intro:
-      'Hold up both hands with your thumbs out. Your LEFT hand makes an L! Tap the picture on the side the big hand shows.',
+      'Hold up both hands with your thumbs out. Your LEFT hand makes an L! When you see a hand, tap the picture on that side.',
     recipe: [
-      { kind: 'side', count: 5, extraForOlder: 1, hint: true },
-      { kind: 'facing', count: 3, extraForOlder: 1, view: 'front', hint: true },
+      { kind: 'side', count: 4, extraForOlder: 1, hint: true },
+      { kind: 'side', count: 4, extraForOlder: 1, hint: false },
     ],
   },
   {
     id: 'L02',
     number: 2,
-    theme: 'ocean',
-    skill: 'b and d: spot the right way round, then trace it',
-    icon: '🐚',
-    title: 'b and d',
+    theme: 'lake',
+    skill: 'b on its own: stick, then bump (trace, write, then spot a backwards b)',
+    icon: '⚾',
+    title: 'b',
     intro:
-      'The letter b has its round tummy on the RIGHT, like the start of a bed 🛏️. Find the b and d that face the right way, then trace them.',
+      'b starts with a tall stick. Go down, back up, then round the bump, like a bat and then a ball. Start at the green dot!',
     recipe: [
-      { kind: 'pick', count: 3, extraForOlder: 1, glyphs: ['b', 'd'], showReference: true },
-      { kind: 'judge', count: 2, glyphs: ['b', 'd'] },
-      { kind: 'write', count: 3, extraForOlder: 1, glyphs: ['b', 'd'], guideOpacity: 0.45, showStart: true },
+      { kind: 'write', count: 3, extraForOlder: 1, glyphs: ['b'], guideOpacity: 0.6, showStart: true },
+      { kind: 'write', count: 3, extraForOlder: 1, glyphs: ['b'], guideOpacity: 0.25, showStart: true },
+      { kind: 'judge', count: 2, glyphs: ['b'] },
     ],
   },
 ];

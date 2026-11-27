@@ -95,7 +95,7 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
                 key={`draw-${feedback}`}
                 glyphId={round.glyphId}
                 size={PAD_W}
-                color="#7fb08f"
+                color="#4f9d4a"
                 strokeWidth={10}
                 animateDraw
                 drawDuration={1.1}

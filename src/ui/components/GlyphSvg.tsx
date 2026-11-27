@@ -64,14 +64,14 @@ export function GlyphSvg({
           const ang = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
           return (
             <g key={`start-${i}`}>
-              <circle cx={a.x} cy={a.y} r={6.5} fill="#7fb08f" stroke="#fff" strokeWidth={2} />
+              <circle cx={a.x} cy={a.y} r={6.5} fill="#4f9d4a" stroke="#fff" strokeWidth={2} />
               <text x={a.x} y={a.y + 3.2} fontSize="8" textAnchor="middle" fill="#fff" fontWeight="700">
                 {i + 1}
               </text>
               <g transform={`translate(${a.x} ${a.y}) rotate(${ang}) translate(13 0)`}>
                 <path
                   d="M-4 -4 L3 0 L-4 4"
-                  stroke="#7fb08f"
+                  stroke="#4f9d4a"
                   strokeWidth={2.5}
                   fill="none"
                   strokeLinecap="round"

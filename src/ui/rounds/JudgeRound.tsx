@@ -58,7 +58,7 @@ export function JudgeRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
           <svg width="56" height="56" viewBox="0 0 24 24">
             <path
               d="M5 12.5l4.5 4.5L19 7.5"
-              stroke="#5f8f6f"
+              stroke="#3c7f39"
               strokeWidth="3"
               fill="none"
               strokeLinecap="round"
@@ -76,8 +76,8 @@ export function JudgeRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
         >
           <svg width="56" height="56" viewBox="0 0 24 24">
             <path d="M12 3v18" stroke="#9aa6b2" strokeWidth="1.5" strokeDasharray="2 2" />
-            <path d="M9 7L4 12l5 5V7z" fill="#8fb1c9" />
-            <path d="M15 7l5 5-5 5V7z" fill="#8fb1c9" />
+            <path d="M9 7L4 12l5 5V7z" fill="#2f86c4" />
+            <path d="M15 7l5 5-5 5V7z" fill="#2f86c4" />
           </svg>
         </motion.button>
       </div>

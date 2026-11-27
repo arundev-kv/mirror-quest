@@ -7,7 +7,7 @@ import { scoreLevel, type RoundOutcome } from '../../core/scoring';
 import type { Profile } from '../../core/types';
 import { useApp } from '../../state/appStore';
 import { useUi } from '../../state/uiStore';
-import { FEEDBACK_TEXT, hintFor, instructionFor, instructionSpeech, type FeedbackKind } from '../copy';
+import { FEEDBACK_TEXT, instructionFor, instructionSpeech, WATCH_WORD, type FeedbackKind } from '../copy';
 import { IconButton } from '../components/IconButton';
 import { Instruction } from '../components/Instruction';
 import { Mascot, type MascotMood } from '../components/Mascot';
@@ -81,7 +81,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
   const spokenRound = demoKind ? (demoRounds.get(demoKind) ?? round) : round;
   useEffect(() => {
     if (showIntro) speak(`Level ${level.number}. ${level.title}. ${level.intro}`);
-    else if (demoKind) speak(`Watch the hand. ${instructionSpeech(spokenRound)}`);
+    else if (demoKind) speak(WATCH_WORD);
     else speak(instructionSpeech(spokenRound));
     // Speak once per new round or demo, not on every re-render.
   }, [showIntro, demoKind, index]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -203,7 +203,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       {!showIntro && (
         <Instruction
           segments={instructionFor(demoKind ? (demoRounds.get(demoKind) ?? round) : round)}
-          hint={demoKind ? 'Watch first: the hand shows you what to do.' : hintFor(round)}
+          hint={demoKind ? WATCH_WORD : null}
           feedback={feedbackKind ? FEEDBACK_TEXT[feedbackKind] : null}
           onReplay={() => speak(instructionSpeech(spokenRound))}
         />

@@ -17,7 +17,7 @@ test('play level 1 perfectly and unlock level 2', async ({ page }) => {
   await expect(page.getByTestId('intro')).toContainText('Left and Right'); // written intro first
   await page.getByTestId('intro-start').click();
   await expect(page.getByTestId('demo')).toBeVisible(); // then the ghost-hand demo
-  await expect(page.getByTestId('instruction')).toContainText(/Tap the picture on your (LEFT|RIGHT) side/);
+  await expect(page.getByTestId('instruction')).toContainText(/^(LEFT|RIGHT)/); // one word in play
   await playLevel(page, true);
   // All answers right: accuracy alone gives 70+, speed (machine-dependent) decides 2 or 3 stars.
   expect(Number(await page.getByTestId('results').getAttribute('data-score'))).toBeGreaterThanOrEqual(70);
@@ -27,12 +27,12 @@ test('play level 1 perfectly and unlock level 2', async ({ page }) => {
   await expect(page.getByTestId('points')).not.toHaveText('0');
 });
 
-test('play level 2 (pick, judge and trace b/d)', async ({ page }) => {
+test('play level 2 (trace, write and judge b)', async ({ page }) => {
   test.setTimeout(300_000);
   await createProfile(page);
   await unlockLevel2(page);
   await page.getByTestId('level-2').click();
-  await expect(page.getByTestId('intro')).toContainText('b and d');
+  await expect(page.getByTestId('intro')).toContainText('b starts with a tall stick');
   await playLevel(page, true);
   expect(Number(await page.getByTestId('results').getAttribute('data-score'))).toBeGreaterThanOrEqual(70);
 });

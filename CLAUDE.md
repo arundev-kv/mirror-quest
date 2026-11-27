@@ -20,13 +20,17 @@ Vitest (unit) · Playwright (e2e) · oxlint + Prettier · Netlify hosting.
   Rendering lives in `src/ui/` and `src/scenes/`.
 - **Data-driven levels.** A level is a `LevelConfig` entry in `src/core/levels.ts` (theme + recipe of round kinds).
   New content should not need new components unless it introduces a new round kind.
-- **Show, write and say every instruction.** Many players can't read yet. Each level opens with a short intro card,
-  every round has a one-line written instruction (`src/ui/copy.ts`, with LEFT in sage and RIGHT in sky), and the same
-  text is read aloud with the device's built-in American English voice (`src/audio/voice.ts`, Web Speech API, local
-  voices preferred so it stays offline). A ghost-hand demo plays the first time a round kind appears, and the
-  "show me how" button replays it. Keep instructions to one short sentence. Grown-ups can turn the voice off.
-- **Addiction-safe and calm.** Muted pastel palette (sage, sky, sand, lavender); no saturated red/neon, flashing or
-  pulsing; no streaks, loot boxes, random rewards or "come back" nags. Stars only come from skill. Never a "fail" sound.
+- **Words, not sentences, during play.** Many players can't read yet, and children with learning difficulties process
+  less language while busy. Each stage opens with an intro card (full sentences, read aloud). During play, the on-screen
+  cue and the voice are ONE or two words only (`src/ui/copy.ts`: "LEFT", "b", "Trace b"; feedback "Yes!", "Again",
+  "Flip", "Look"), with LEFT in grass green and RIGHT in sky blue. The voice is the device's built-in American English
+  voice (`src/audio/voice.ts`, Web Speech API, local voices preferred so it stays offline); grown-ups can turn it off.
+  A ghost-hand demo plays the first time a round kind appears, and "show me how" replays it.
+- **Clinically sequenced stages.** Follow `docs/LEVEL_PLAN.md`: own-body left/right before another person's;
+  confusable letters (b/d, p/q) taught apart in their movement families and only contrasted after both are learned;
+  support fades within and across stages (errorless learning); every fifth stage is a mixed review.
+- **Addiction-safe but bright.** A natural alpine palette (clear sky blue, grass green, wildflower yellow, wood
+  brown, snowy peaks): vivid and cheerful like a sunny mountain meadow, never neon. No flashing, pulsing or fast cuts; no streaks, loot boxes, random rewards or "come back" nags. Stars only come from skill. Never a "fail" sound.
   Respect `prefers-reduced-motion`.
 - **Daily limit.** 30 min of ACTIVE play per profile per day (tab visible + input in the last 60 s). Sunset countdown from
   25 min; at 30 min a running level may finish (max 2 min grace), then the sleep screen. Resets at local midnight.

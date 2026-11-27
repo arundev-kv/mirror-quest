@@ -32,7 +32,7 @@ export const GLYPHS: Record<string, Glyph> = Object.fromEntries(
   [
     // ---------- lowercase ----------
     g('a', 'a', 'lower', [cShape(48), line([68, 50], [68, 90])], '🍎'),
-    g('b', 'b', 'lower', [line([30, 10], [30, 90]), arc(50, 70, 20, 20, 180, 540)], '🛏️'),
+    g('b', 'b', 'lower', [line([30, 10], [30, 90]), arc(50, 70, 20, 20, 180, 540)], '⚾'),
     g('c', 'c', 'lower', [cShape()], '🐱'),
     g('d', 'd', 'lower', [cShape(48), line([68, 10], [68, 90])], '🐶'),
     g('e', 'e', 'lower', [join(line([30, 70], [70, 70]), arc(50, 70, 20, 20, 0, -310))], '🥚'),

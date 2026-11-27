@@ -1,16 +1,17 @@
 /* Calm, muted palette. No saturated reds, no neon, no flashing. */
 :root {
-  --ink: #4a5561;
-  --ink-soft: #7d8a96;
-  --paper: #fbf9f5;
-  --card: #ffffffe6;
-  --sage: #8fb59a;
-  --sage-deep: #6f9a7d;
-  --sky: #8fb1c9;
-  --sand: #efe4d2;
-  --lavender: #c9bfe0;
-  --gold: #e7c873;
-  --glow: #f3e7b8;
+  /* Bright, natural alpine palette: clear sky, fresh grass, wildflower yellow. No neon, no flashing. */
+  --ink: #2f3e4c;
+  --ink-soft: #5d6f7f;
+  --paper: #fffaf0;
+  --card: #fffdf7f2;
+  --sage: #4f9d4a;
+  --sage-deep: #3c7f39;
+  --sky: #2f86c4;
+  --sand: #f6e7c8;
+  --lavender: #9b7fd1;
+  --gold: #f2c14e;
+  --glow: #ffe27a;
   --radius: 28px;
   font-family: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', system-ui, sans-serif;
   color: var(--ink);
@@ -137,7 +138,7 @@ input:focus-visible {
 .app-title {
   font-size: clamp(2rem, 5vw, 3.2rem);
   margin: 0;
-  color: #56707a;
+  color: #2f6f9f;
   letter-spacing: 0.02em;
 }
 .profile-grid {
@@ -841,8 +842,8 @@ input:focus-visible {
 }
 .instruction-text {
   margin: 0;
-  font-size: clamp(1.15rem, 2.2vw, 1.55rem);
-  font-weight: 700;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 800;
   line-height: 1.35;
 }
 .side-word {

@@ -5,8 +5,8 @@ export function Star({ filled, size = 40 }: { filled: boolean; size?: number }) 
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17.1 6.1 20.3l1.3-6.5L2.5 9.3l6.6-.8z"
-        fill={filled ? '#e7c873' : '#e6e2da'}
-        stroke={filled ? '#d2b05a' : '#d4cfc5'}
+        fill={filled ? '#f2c14e' : '#e6e2da'}
+        stroke={filled ? '#d9a521' : '#d4cfc5'}
         strokeWidth="1"
         strokeLinejoin="round"
       />

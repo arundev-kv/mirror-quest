@@ -1,7 +1,7 @@
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useReducedMotion } from 'framer-motion';
 import { useMemo, useRef } from 'react';
-import type { Group, Mesh } from 'three';
+import type { Group } from 'three';
 import { THEMES, type ThemeId } from '../core/levels';
 import { createRng } from '../core/random';
 
@@ -35,7 +35,7 @@ function Cloud({ x, y, z, speed }: { x: number; y: number; z: number; speed: num
       ].map(([cx, cy, cz, r], i) => (
         <mesh key={i} position={[cx, cy, cz]}>
           <icosahedronGeometry args={[r, 0]} />
-          <meshStandardMaterial color="#fbfbf8" flatShading />
+          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.45} flatShading />
         </mesh>
       ))}
     </group>
@@ -45,7 +45,7 @@ function Cloud({ x, y, z, speed }: { x: number; y: number; z: number; speed: num
 function Tree({
   position,
   scale = 1,
-  color = '#8fae86',
+  color = '#3f8f45',
 }: {
   position: [number, number, number];
   scale?: number;
@@ -55,7 +55,7 @@ function Tree({
     <group position={position} scale={scale}>
       <mesh position={[0, 0.5, 0]}>
         <cylinderGeometry args={[0.12, 0.16, 1, 6]} />
-        <meshStandardMaterial color="#a68a6d" flatShading />
+        <meshStandardMaterial color="#8a5a33" flatShading />
       </mesh>
       <mesh position={[0, 1.4, 0]}>
         <coneGeometry args={[0.7, 1.6, 7]} />
@@ -75,7 +75,7 @@ function Flower({ position, color, phase }: { position: [number, number, number]
     <group ref={ref} position={position}>
       <mesh position={[0, 0.25, 0]}>
         <cylinderGeometry args={[0.03, 0.03, 0.5, 4]} />
-        <meshStandardMaterial color="#86a878" />
+        <meshStandardMaterial color="#4c9a3f" />
       </mesh>
       <mesh position={[0, 0.55, 0]}>
         <dodecahedronGeometry args={[0.14, 0]} />
@@ -85,120 +85,151 @@ function Flower({ position, color, phase }: { position: [number, number, number]
   );
 }
 
-function Meadow() {
-  const flowers = useMemo(() => {
-    const rng = createRng(11);
-    return Array.from({ length: 18 }, () => ({
-      position: [(rng() - 0.5) * 16, -1.9, -1 - rng() * 4] as [number, number, number],
-      color: ['#e9d8a6', '#d9c4e0', '#f0e3e6', '#cfe0ee'][Math.floor(rng() * 4)],
-      phase: rng() * 6,
-    }));
-  }, []);
+/** Snow-capped peaks along the back, like a sunny alpine valley. */
+function Mountains() {
+  const peaks: [number, number, number, number, string][] = [
+    [-12, 7, -22, 7.5, '#7f9cb8'],
+    [-4, 9, -26, 9, '#8aa7c2'],
+    [5, 8, -24, 8, '#7896b3'],
+    [13, 7, -22, 7, '#86a2bd'],
+  ];
   return (
     <>
-      <mesh position={[-5, -6.5, -6]} scale={[9, 5, 4]}>
-        <sphereGeometry args={[1, 16, 10]} />
-        <meshStandardMaterial color="#b4cda2" flatShading />
-      </mesh>
-      <mesh position={[6, -6.8, -7]} scale={[10, 5, 4]}>
-        <sphereGeometry args={[1, 16, 10]} />
-        <meshStandardMaterial color="#a9c497" flatShading />
-      </mesh>
-      <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[40, 20]} />
-        <meshStandardMaterial color="#bcd3a9" />
-      </mesh>
-      <Tree position={[-6.5, -2.2, -5]} scale={1.3} />
-      <Tree position={[-4.8, -2.2, -6]} />
-      <Tree position={[6.2, -2.2, -5]} scale={1.2} color="#9cb98f" />
-      {flowers.map((f, i) => (
-        <Flower key={i} {...f} />
+      {peaks.map(([x, h, z, r, color], i) => (
+        <group key={i} position={[x, -2.2, z]}>
+          <mesh position={[0, h / 2, 0]}>
+            <coneGeometry args={[r, h, 7]} />
+            <meshStandardMaterial color={color} flatShading />
+          </mesh>
+          <mesh position={[0, h - h * 0.14, 0]}>
+            <coneGeometry args={[r * 0.29, h * 0.29, 7]} />
+            <meshStandardMaterial color="#ffffff" flatShading />
+          </mesh>
+        </group>
       ))}
-      <Cloud x={-8} y={3.2} z={-6} speed={0.18} />
-      <Cloud x={3} y={4} z={-8} speed={0.12} />
-      <Cloud x={9} y={2.6} z={-7} speed={0.15} />
     </>
   );
 }
 
-function Bubble({ x, z, delay, speed }: { x: number; z: number; delay: number; speed: number }) {
-  const ref = useRef<Mesh>(null);
-  const t = useSlowTime();
-  useFrame(() => {
-    if (!ref.current) return;
-    const y = ((t.current * speed + delay) % 8) - 3;
-    ref.current.position.set(x + Math.sin(t.current + delay) * 0.2, y, z);
-  });
+function Sun() {
   return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[0.12, 8, 6]} />
-      <meshStandardMaterial color="#eef6fa" transparent opacity={0.55} />
+    <mesh position={[9, 6.5, -20]}>
+      <sphereGeometry args={[1.6, 20, 14]} />
+      <meshBasicMaterial color="#ffd84a" fog={false} />
     </mesh>
   );
 }
 
-function Fish({ y, z, speed, color, dir }: { y: number; z: number; speed: number; color: string; dir: 1 | -1 }) {
-  const ref = useRef<Group>(null);
-  const t = useSlowTime();
-  useFrame((_, dt) => {
-    if (!ref.current) return;
-    ref.current.position.x += dt * speed * dir;
-    if (ref.current.position.x > 12) ref.current.position.x = -12;
-    if (ref.current.position.x < -12) ref.current.position.x = 12;
-    ref.current.position.y = y + Math.sin(t.current * 0.7) * 0.2;
-  });
+function Chalet({ position }: { position: [number, number, number] }) {
   return (
-    <group ref={ref} position={[dir * -8, y, z]} scale={[dir, 1, 1]}>
-      <mesh>
-        <sphereGeometry args={[0.4, 8, 6]} />
-        <meshStandardMaterial color={color} flatShading />
+    <group position={position} rotation={[0, 0.5, 0]}>
+      <mesh position={[0, 0.7, 0]}>
+        <boxGeometry args={[2, 1.4, 1.6]} />
+        <meshStandardMaterial color="#b5703d" flatShading />
       </mesh>
-      <mesh position={[-0.5, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <coneGeometry args={[0.28, 0.4, 4]} />
-        <meshStandardMaterial color={color} flatShading />
+      <mesh position={[0, 1.75, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <coneGeometry args={[1.75, 0.9, 4]} />
+        <meshStandardMaterial color="#7a4524" flatShading />
+      </mesh>
+      <mesh position={[0, 0.8, 0.81]}>
+        <boxGeometry args={[0.5, 0.5, 0.02]} />
+        <meshStandardMaterial color="#fff4d6" />
       </mesh>
     </group>
   );
 }
 
-function Ocean() {
-  const water = useRef<Mesh>(null);
-  const t = useSlowTime();
-  useFrame(() => {
-    if (water.current) water.current.position.y = -2.3 + Math.sin(t.current * 0.6) * 0.05;
-  });
-  const bubbles = useMemo(() => {
-    const rng = createRng(5);
-    return Array.from({ length: 12 }, () => ({
-      x: (rng() - 0.5) * 16,
-      z: -2 - rng() * 4,
-      delay: rng() * 8,
-      speed: 0.35 + rng() * 0.3,
+function Hills({ color = '#7cc46a' }: { color?: string }) {
+  return (
+    <>
+      <mesh position={[-6, -7, -10]} scale={[11, 6, 5]}>
+        <sphereGeometry args={[1, 18, 12]} />
+        <meshStandardMaterial color="#6cb95c" flatShading />
+      </mesh>
+      <mesh position={[7, -7.4, -11]} scale={[12, 6, 5]}>
+        <sphereGeometry args={[1, 18, 12]} />
+        <meshStandardMaterial color="#64b056" flatShading />
+      </mesh>
+      <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[60, 30]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+    </>
+  );
+}
+
+const FLOWER_COLORS = ['#f6c945', '#ffffff', '#e4572e', '#9b7fd1', '#f29fc5'];
+
+function Meadow({ chalet = false }: { chalet?: boolean }) {
+  const flowers = useMemo(() => {
+    const rng = createRng(11);
+    return Array.from({ length: 26 }, () => ({
+      position: [(rng() - 0.5) * 18, -2.2, -1 - rng() * 5] as [number, number, number],
+      color: FLOWER_COLORS[Math.floor(rng() * FLOWER_COLORS.length)],
+      phase: rng() * 6,
     }));
   }, []);
   return (
     <>
-      <mesh ref={water} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[40, 20, 1, 1]} />
-        <meshStandardMaterial color="#9fc2d3" />
+      <Sun />
+      <Mountains />
+      <Hills />
+      <Tree position={[-7, -2.2, -6]} scale={1.5} />
+      <Tree position={[-5.4, -2.2, -7]} scale={1.2} />
+      <Tree position={[6.8, -2.2, -6]} scale={1.4} color="#357f3c" />
+      {chalet && <Chalet position={[4.5, -2.2, -8]} />}
+      {flowers.map((f, i) => (
+        <Flower key={i} {...f} />
+      ))}
+      <Cloud x={-8} y={3.6} z={-9} speed={0.18} />
+      <Cloud x={3} y={4.4} z={-12} speed={0.12} />
+    </>
+  );
+}
+
+function Duck({ x, z, speed, phase }: { x: number; z: number; speed: number; phase: number }) {
+  const ref = useRef<Group>(null);
+  const t = useSlowTime();
+  useFrame(() => {
+    if (!ref.current) return;
+    ref.current.position.x = x + Math.sin(t.current * speed + phase) * 2.5;
+    ref.current.position.y = -2.05 + Math.sin(t.current * 1.4 + phase) * 0.03;
+  });
+  return (
+    <group ref={ref} position={[x, -2.05, z]}>
+      <mesh>
+        <sphereGeometry args={[0.3, 10, 8]} />
+        <meshStandardMaterial color="#fff8e8" flatShading />
       </mesh>
-      {[-6, -4.5, 5.5].map((x, i) => (
-        <mesh key={i} position={[x, -2, -4 - i]} scale={[1.2, 0.8, 1]}>
-          <dodecahedronGeometry args={[0.9, 0]} />
-          <meshStandardMaterial color="#c7c0b4" flatShading />
-        </mesh>
-      ))}
-      {[-6.6, -6.2, 6.1].map((x, i) => (
-        <mesh key={`w${i}`} position={[x, -1, -4.5]} rotation={[0, 0, (i - 1) * 0.15]}>
-          <cylinderGeometry args={[0.05, 0.08, 2.4, 5]} />
-          <meshStandardMaterial color="#8fb59a" flatShading />
-        </mesh>
-      ))}
-      <Fish y={0.5} z={-5} speed={0.5} color="#e7c9a3" dir={1} />
-      <Fish y={1.8} z={-7} speed={0.35} color="#c9bfe0" dir={-1} />
-      {bubbles.map((b, i) => (
-        <Bubble key={i} {...b} />
-      ))}
+      <mesh position={[0.22, 0.25, 0]}>
+        <sphereGeometry args={[0.16, 10, 8]} />
+        <meshStandardMaterial color="#fff8e8" flatShading />
+      </mesh>
+      <mesh position={[0.4, 0.23, 0]} rotation={[0, 0, -Math.PI / 2]}>
+        <coneGeometry args={[0.06, 0.14, 6]} />
+        <meshStandardMaterial color="#f2a33a" />
+      </mesh>
+    </group>
+  );
+}
+
+function Lake() {
+  return (
+    <>
+      <Sun />
+      <Mountains />
+      <Hills />
+      <mesh position={[0, -2.17, -5]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[7.5, 40]} />
+        <meshStandardMaterial color="#3d9ad1" />
+      </mesh>
+      <Tree position={[-8, -2.2, -6]} scale={1.6} />
+      <Tree position={[-6.6, -2.2, -8]} scale={1.3} color="#357f3c" />
+      <Tree position={[7.8, -2.2, -7]} scale={1.5} />
+      <Tree position={[9, -2.2, -5]} scale={1.1} color="#357f3c" />
+      <Duck x={-2} z={-6} speed={0.25} phase={0} />
+      <Duck x={2.5} z={-4} speed={0.2} phase={2} />
+      <Cloud x={-6} y={4} z={-11} speed={0.15} />
     </>
   );
 }
@@ -206,18 +237,17 @@ function Ocean() {
 function Forest() {
   const trees = useMemo(() => {
     const rng = createRng(3);
-    return Array.from({ length: 14 }, () => ({
-      position: [(rng() - 0.5) * 18, -2.2, -3 - rng() * 6] as [number, number, number],
-      scale: 0.9 + rng() * 0.8,
-      color: ['#7f9f78', '#8fae86', '#6d8c6a'][Math.floor(rng() * 3)],
+    return Array.from({ length: 16 }, () => ({
+      position: [(rng() - 0.5) * 20, -2.2, -3 - rng() * 7] as [number, number, number],
+      scale: 1 + rng() * 0.9,
+      color: ['#3f8f45', '#357f3c', '#4c9f49'][Math.floor(rng() * 3)],
     }));
   }, []);
   return (
     <>
-      <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[40, 20]} />
-        <meshStandardMaterial color="#a8bd99" />
-      </mesh>
+      <Sun />
+      <Mountains />
+      <Hills color="#6cb95c" />
       {trees.map((tr, i) => (
         <Tree key={i} {...tr} />
       ))}
@@ -225,50 +255,21 @@ function Forest() {
   );
 }
 
-function SpaceScene() {
-  const ref = useRef<Group>(null);
-  const stars = useMemo(() => {
-    const rng = createRng(9);
-    return Array.from(
-      { length: 80 },
-      () => [(rng() - 0.5) * 30, (rng() - 0.3) * 14, -6 - rng() * 6] as [number, number, number],
-    );
-  }, []);
-  useFrame((_, dt) => {
-    if (ref.current) ref.current.rotation.z += dt * 0.01;
-  });
-  return (
-    <group ref={ref}>
-      {stars.map((p, i) => (
-        <mesh key={i} position={p}>
-          <octahedronGeometry args={[0.06, 0]} />
-          <meshBasicMaterial color="#e9e6f7" />
-        </mesh>
-      ))}
-      <mesh position={[5, 2.5, -8]}>
-        <icosahedronGeometry args={[1.3, 1]} />
-        <meshStandardMaterial color="#c8b9d9" flatShading />
-      </mesh>
-    </group>
-  );
-}
-
 function Castle() {
   return (
     <>
-      <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[40, 20]} />
-        <meshStandardMaterial color="#c6cdb4" />
-      </mesh>
+      <Sun />
+      <Mountains />
+      <Hills />
       {[-5.5, -3.5, 4, 6].map((x, i) => (
-        <group key={i} position={[x, -2.2, -6]}>
+        <group key={i} position={[x, -2.2, -7]}>
           <mesh position={[0, 1.4, 0]}>
             <cylinderGeometry args={[0.6, 0.6, 2.8, 8]} />
-            <meshStandardMaterial color="#d8d2df" flatShading />
+            <meshStandardMaterial color="#efe6d4" flatShading />
           </mesh>
           <mesh position={[0, 3.3, 0]}>
             <coneGeometry args={[0.8, 1.2, 8]} />
-            <meshStandardMaterial color="#a79fc0" flatShading />
+            <meshStandardMaterial color="#7a62b0" flatShading />
           </mesh>
         </group>
       ))}
@@ -280,14 +281,14 @@ function SceneContent({ theme }: { theme: ThemeId }) {
   switch (theme) {
     case 'meadow':
       return <Meadow />;
-    case 'ocean':
-      return <Ocean />;
+    case 'lake':
+      return <Lake />;
     case 'forest':
       return <Forest />;
-    case 'space':
-      return <SpaceScene />;
-    case 'garden':
-      return <Meadow />;
+    case 'hut':
+      return <Meadow chalet />;
+    case 'village':
+      return <Meadow chalet />;
     case 'castle':
       return <Castle />;
   }
@@ -305,9 +306,9 @@ export default function ThemeScene({ theme }: { theme: ThemeId }) {
         gl={{ antialias: true, powerPreference: 'low-power' }}
       >
         <color attach="background" args={[t.sky]} />
-        <fog attach="fog" args={[t.sky, 9, 22]} />
-        <hemisphereLight args={['#ffffff', t.ground, 1.1]} />
-        <directionalLight position={[4, 6, 5]} intensity={0.9} />
+        <fog attach="fog" args={[t.sky, 22, 45]} />
+        <hemisphereLight args={['#ffffff', '#6cb95c', 1.25]} />
+        <directionalLight position={[5, 8, 6]} intensity={1.4} color="#fff3dc" />
         <SceneContent theme={theme} />
       </Canvas>
     </div>
