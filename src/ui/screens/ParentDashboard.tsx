@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { getGlyph } from '../../core/glyphs';
 import { LEVELS } from '../../core/levels';
+import { isMastered } from '../../core/scoring';
 import { topReversals, totalPoints } from '../../core/profiles';
 import { parseImport, serializeExport } from '../../core/storage';
 import { DAILY_LIMIT_MS, lastNDates, localDateKey, MINUTE, rollover } from '../../core/time';
@@ -12,6 +13,8 @@ import { StarRow } from '../components/Stars';
 
 function reversalLabel(key: string) {
   if (key === 'left-right') return 'Left / right';
+  if (key === 'direction') return 'Which way';
+  if (key === 'start') return 'Where to start';
   try {
     return getGlyph(key).char;
   } catch {
@@ -75,6 +78,7 @@ function ProfileReport({ profile }: { profile: Profile }) {
             <th>Best</th>
             <th>Stars</th>
             <th>Tries</th>
+            <th title="Mastery criterion reached on two different days">Learned</th>
           </tr>
         </thead>
         <tbody>
@@ -87,6 +91,7 @@ function ProfileReport({ profile }: { profile: Profile }) {
                 <td>{p ? p.bestScore : '–'}</td>
                 <td>{p ? <StarRow stars={p.bestStars} size={14} /> : '–'}</td>
                 <td>{p?.attempts ?? 0}</td>
+                <td>{isMastered(p) ? 'Yes' : p?.masteredOn.length ? '1 of 2 days' : '–'}</td>
               </tr>
             );
           })}
@@ -95,6 +100,10 @@ function ProfileReport({ profile }: { profile: Profile }) {
       <div className="report-cols">
         <div>
           <h4>Most often reversed</h4>
+          <p className="muted note-small">
+            Reversals are normal until about age 7. Look at the trend over weeks, mostly in the memory-writing reviews
+            (levels 10, 15, 20, 24 and 30). “Learned” means the level’s target was reached on two different days.
+          </p>
           {reversals.length === 0 ? (
             <p className="muted">Nothing yet.</p>
           ) : (

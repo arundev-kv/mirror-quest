@@ -31,7 +31,8 @@ export async function drawGlyph(page: Page, glyphId: string, mirror = false) {
     }));
     await page.mouse.move(pts[0].x, pts[0].y);
     await page.mouse.down();
-    for (const p of pts.slice(1).filter((_, i, a) => i % 3 === 0 || i === a.length - 1))
+    // Every 4th point keeps the shape and keeps CI fast.
+    for (const p of pts.slice(1).filter((_, i, a) => i % 4 === 0 || i === a.length - 1))
       await page.mouse.move(p.x, p.y);
     await page.mouse.up();
   }
@@ -44,6 +45,12 @@ export async function answerRound(page: Page, correct: boolean) {
   await expect(round).toHaveCount(1);
   const kind = await round.getAttribute('data-kind');
   switch (kind) {
+    case 'body': {
+      // Unscored warm-up: Done unlocks after a short moment.
+      await expect(page.getByTestId('body-done')).toBeEnabled({ timeout: 6000 });
+      await page.getByTestId('body-done').click();
+      break;
+    }
     case 'side': {
       const target = (await page.getByTestId('prompt').getAttribute('data-target')) as 'left' | 'right';
       const other = target === 'left' ? 'right' : 'left';
@@ -58,8 +65,11 @@ export async function answerRound(page: Page, correct: boolean) {
       await page.getByTestId(`facing-${correct ? screenSide : other}`).click();
       break;
     }
+    case 'direction':
+    case 'path':
+    case 'sequence':
     case 'pick': {
-      await page.locator(`[data-testid^="option-"][data-correct="${correct}"]`).first().click();
+      await round.locator(`button[data-correct="${correct}"]`).first().click();
       break;
     }
     case 'judge': {
@@ -69,6 +79,8 @@ export async function answerRound(page: Page, correct: boolean) {
       break;
     }
     case 'write': {
+      // Memory writing: the model shows first, then hides.
+      await expect(round.locator('.round--write')).toHaveAttribute('data-phase', 'write', { timeout: 6000 });
       const glyph = (await page.getByTestId('write-pad').getAttribute('data-glyph'))!;
       await drawGlyph(page, glyph, !correct);
       await page.getByTestId('write-done').click();
@@ -80,10 +92,10 @@ export async function answerRound(page: Page, correct: boolean) {
 }
 
 /** Play the whole level. correct=false misses every round twice. */
-export async function playLevel(page: Page, correct: boolean) {
+export async function playLevel(page: Page, correct: boolean, from = 0) {
   const results = page.getByTestId('results');
   await skipDemo(page); // closes the intro card
-  for (let i = 0; i < 20; i++) {
+  for (let i = from; i < 20; i++) {
     // Wait for round i (after any exit animation of the previous one) or the results.
     const round = page.locator(`[data-testid="round"][data-index="${i}"]`);
     await expect
@@ -95,12 +107,13 @@ export async function playLevel(page: Page, correct: boolean) {
             ((await round.count()) > 0 && (await page.getByTestId('round').count()) === 1)
           );
         },
-        { timeout: 15000 },
+        { timeout: 30_000 },
       )
       .toBe(true);
     if ((await results.count()) > 0) break;
+    const kind = await round.getAttribute('data-kind', { timeout: 1000 }).catch(() => null);
     await answerRound(page, correct);
-    if (!correct) {
+    if (!correct && kind !== 'body') {
       await expect(round).toHaveAttribute('data-tries', '2', { timeout: 5000 });
       await answerRound(page, false);
     }
@@ -124,22 +137,31 @@ export async function seedUsage(page: Page, minutes: number) {
   await page.reload();
 }
 
-/** Give the first profile a passing Level 1 score so Level 2 is open. */
-export async function unlockLevel2(page: Page) {
+/**
+ * Give the first profile passing scores on the levels before `levelNumber`, so it is open.
+ * `masteredOn` adds mastery days (two dates = learned).
+ */
+export async function unlockUpTo(page: Page, levelNumber: number, masteredOn: string[] = []) {
   await page.getByTestId('map-profiles').click();
   await expect(page.getByTestId('profiles')).toBeVisible();
-  await page.evaluate(() => {
-    const raw = JSON.parse(localStorage.getItem('mirror-quest')!);
-    raw.state.profiles[0].levels.L01 = {
-      bestScore: 80,
-      bestStars: 2,
-      attempts: 1,
-      bestTimeMs: 30000,
-      lastPlayedAt: Date.now(),
-    };
-    localStorage.setItem('mirror-quest', JSON.stringify(raw));
-  });
+  await page.evaluate(
+    ({ n, days }) => {
+      const raw = JSON.parse(localStorage.getItem('mirror-quest')!);
+      for (let i = 1; i < n; i++) {
+        raw.state.profiles[0].levels[`L${String(i).padStart(2, '0')}`] = {
+          bestScore: 80,
+          bestStars: 2,
+          attempts: 1,
+          bestTimeMs: 30000,
+          lastPlayedAt: Date.now(),
+          masteredOn: days,
+        };
+      }
+      localStorage.setItem('mirror-quest', JSON.stringify(raw));
+    },
+    { n: levelNumber, days: masteredOn },
+  );
   await page.reload();
   await page.locator('[data-testid^="profile-"]').first().click();
-  await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'true');
+  await expect(page.getByTestId('map')).toBeVisible();
 }

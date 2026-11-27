@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { LEVELS, THEMES } from '../../core/levels';
-import { isLevelUnlocked, totalPoints } from '../../core/profiles';
+import { LEVELS, THEMES, WORLDS } from '../../core/levels';
+import { currentWorld, lockReason, totalPoints } from '../../core/profiles';
+import { isMastered } from '../../core/scoring';
 import type { Profile } from '../../core/types';
 import { useApp } from '../../state/appStore';
 import { useUi } from '../../state/uiStore';
@@ -12,6 +13,10 @@ export function LevelMap({ profile }: { profile: Profile }) {
   const go = useUi((s) => s.go);
   const selectProfile = useApp((s) => s.selectProfile);
   const usedMs = profile.usage.usedMs;
+  const mapWorld = useUi((s) => s.mapWorld);
+  const setMapWorld = useUi((s) => s.setMapWorld);
+  const world = mapWorld ?? currentWorld(profile);
+  const levels = LEVELS.filter((l) => l.world === world);
 
   return (
     <div className="screen map" data-testid="map">
@@ -35,9 +40,31 @@ export function LevelMap({ profile }: { profile: Profile }) {
           <span>{totalPoints(profile)}</span>
         </div>
       </header>
+      <nav className="world-chips" aria-label="worlds">
+        {WORLDS.map((w) => {
+          const first = LEVELS.find((l) => l.world === w.number)!;
+          const open = lockReason(profile, first.id) === null || !!profile.levels[first.id];
+          return (
+            <button
+              key={w.number}
+              type="button"
+              className={`world-chip ${w.number === world ? 'is-current' : ''} ${open ? '' : 'is-locked'}`}
+              style={{ borderColor: THEMES[w.theme].accent }}
+              data-testid={`world-${w.number}`}
+              aria-label={`world ${w.number} ${w.name}${open ? '' : ' locked'}`}
+              aria-pressed={w.number === world}
+              onClick={() => setMapWorld(w.number)}
+            >
+              <span aria-hidden="true">{open ? first.icon : '🔒'}</span>
+              <b>{w.number}</b>
+            </button>
+          );
+        })}
+      </nav>
       <div className="level-path">
-        {LEVELS.map((lvl, i) => {
-          const unlocked = isLevelUnlocked(profile, lvl.id);
+        {levels.map((lvl, i) => {
+          const reason = lockReason(profile, lvl.id);
+          const unlocked = reason === null;
           const progress = profile.levels[lvl.id];
           const theme = THEMES[lvl.theme];
           return (
@@ -46,7 +73,7 @@ export function LevelMap({ profile }: { profile: Profile }) {
               className="stone-wrap"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.12 }}
+              transition={{ delay: 0.1 + i * 0.1 }}
             >
               <motion.button
                 type="button"
@@ -62,9 +89,18 @@ export function LevelMap({ profile }: { profile: Profile }) {
               >
                 <span className="stone-icon">{unlocked ? lvl.icon : '🔒'}</span>
                 <span className="stone-number">{lvl.number}</span>
+                {isMastered(progress) && (
+                  <span className="stone-mastered" title="learned on two days" aria-label="learned">
+                    🌿
+                  </span>
+                )}
               </motion.button>
               <span className="stone-title">{lvl.title}</span>
-              <StarRow stars={progress?.bestStars ?? 0} size={26} />
+              {reason === 'age' ? (
+                <span className="stone-note">6+</span>
+              ) : (
+                <StarRow stars={progress?.bestStars ?? 0} size={24} />
+              )}
             </motion.div>
           );
         })}
