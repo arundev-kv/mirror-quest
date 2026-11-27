@@ -1,15 +1,15 @@
 import { motion } from 'framer-motion';
-import { useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { GLYPH_BOX, strokesToPath, type Stroke } from '../../core/geometry';
 import { getGlyph } from '../../core/glyphs';
-import type { Round } from '../../core/levels';
+import type { RoundOf } from '../../core/rounds';
 import { evaluateHandwriting } from '../../core/recognizer';
 import { audio } from '../../audio/engine';
 import { GlyphSvg } from '../components/GlyphSvg';
 import { IconButton } from '../components/IconButton';
 import type { RoundProps } from './types';
 
-type R = Extract<Round, { kind: 'write' }>;
+type R = RoundOf<'write'>;
 
 const PAD_W = 300;
 const PAD_H = (PAD_W * GLYPH_BOX.height) / GLYPH_BOX.width;
@@ -21,6 +21,14 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
   const drawing = useRef(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const glyph = getGlyph(round.glyphId);
+  // Memory writing: the model shows for a moment, then hides. The child writes it from memory.
+  const [modelVisible, setModelVisible] = useState(!!round.modelMs);
+  useEffect(() => {
+    if (!round.modelMs || demo) return;
+    const t = window.setTimeout(() => setModelVisible(false), round.modelMs);
+    return () => window.clearTimeout(t);
+  }, [round.modelMs, demo]);
+  const isStroke = glyph.kind === 'stroke';
 
   const toGlyph = (e: PointerEvent) => {
     const r = svgRef.current!.getBoundingClientRect();
@@ -30,7 +38,7 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
     };
   };
 
-  const locked = demo || feedback === 'correct' || feedback === 'reveal' || mirrorShow;
+  const locked = demo || feedback === 'correct' || feedback === 'reveal' || mirrorShow || (modelVisible && !demo);
 
   const down = (e: PointerEvent<SVGSVGElement>) => {
     if (locked) return;
@@ -61,6 +69,12 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
       return;
     }
     if (r.verdict === 'correct') {
+      if (round.requireStart && !r.goodStart) {
+        // Right shape, wrong start or direction: on stroke levels the start IS the skill.
+        setStrokes([]);
+        onAnswer({ correct: false, feedback: 'start' });
+        return;
+      }
       onAnswer({ correct: true, goodStart: r.goodStart });
       return;
     }
@@ -81,11 +95,24 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
   const showGuideDraw = demo || feedback === 'reveal';
 
   return (
-    <div className="round round--write">
+    <div className="round round--write" data-phase={modelVisible ? 'model' : 'write'}>
       <div className="write-layout">
-        <div className="prompt-card reference small">
-          <GlyphSvg glyphId={round.glyphId} size={56} />
-          {glyph.anchor && <span className="anchor">{glyph.anchor}</span>}
+        <div
+          className={`prompt-card reference small ${round.modelMs && !modelVisible && !showGuideDraw ? 'is-hidden' : ''}`}
+        >
+          {isStroke ? (
+            <span className="anchor">✏️</span>
+          ) : round.modelMs && !modelVisible && !showGuideDraw ? (
+            <svg width="56" height="56" viewBox="0 0 24 24" aria-label="remember">
+              <path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5z" fill="none" stroke="#9aa7b4" strokeWidth="2" />
+              <path d="M5 19L19 5" stroke="#9aa7b4" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <>
+              <GlyphSvg glyphId={round.glyphId} size={56} />
+              {glyph.anchor && <span className="anchor">{glyph.anchor}</span>}
+            </>
+          )}
         </div>
         <div className="pad" style={{ width: PAD_W, height: PAD_H }} data-testid="write-pad" data-glyph={round.glyphId}>
           <div className="pad-lines" />
@@ -101,6 +128,8 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
                 drawDuration={1.6}
                 showStart
               />
+            ) : modelVisible ? (
+              <GlyphSvg glyphId={round.glyphId} size={PAD_W} color="#2f86c4" strokeWidth={12} showStart />
             ) : (
               <GlyphSvg
                 glyphId={round.glyphId}
@@ -156,7 +185,7 @@ export function WriteRound({ round, onAnswer, demo, onDemoDone, feedback }: Roun
           </IconButton>
         </div>
       </div>
-      {demo && <DemoTimer ms={glyph.strokes.length * 1900 + 1200} onDone={onDemoDone} />}
+      {demo && <DemoTimer ms={glyph.strokes.length * 1900 + 1200 + (round.modelMs ?? 0)} onDone={onDemoDone} />}
     </div>
   );
 }

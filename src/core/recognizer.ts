@@ -161,6 +161,12 @@ export function evaluateHandwriting(strokes: Stroke[], glyph: Glyph): Handwritin
   return { verdict, quality, goodStart, bestTransform, distances };
 }
 
+/** True when a transform leaves the glyph looking the same (e.g. "o" flipped), so it can't be a distractor. */
+export function isSymmetricUnder(glyph: Glyph, t: Transform): boolean {
+  if (t === 'identity') return true;
+  return cloudDistance(toCloud(glyph.strokes), toCloud(transformStrokes(glyph.strokes, t))) < 0.035;
+}
+
 /** Did the first stroke start near the template start and head in a similar direction? */
 function checkStart(ink: Stroke[], glyph: Glyph): boolean {
   const kidAll = ink.flat();

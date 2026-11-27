@@ -2,7 +2,8 @@ import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { lazy, Suspense, useEffect } from 'react';
 import { audio } from './audio/engine';
 import { setVoiceOptions } from './audio/voice';
-import { getLevel, THEMES, type ThemeId } from './core/levels';
+import { getLevel, THEMES, WORLDS, type ThemeId } from './core/levels';
+import { currentWorld } from './core/profiles';
 import { countdownFraction, DAILY_LIMIT_MS, limitPhase } from './core/time';
 import { useActiveProfile, useApp } from './state/appStore';
 import { useUi } from './state/uiStore';
@@ -28,6 +29,7 @@ export default function App() {
   const navId = useUi((s) => s.navId);
   const breakDue = useUi((s) => s.breakDue);
   const setBreakDue = useUi((s) => s.setBreakDue);
+  const mapWorld = useUi((s) => s.mapWorld);
   const settings = useApp((s) => s.settings);
   const selectProfile = useApp((s) => s.selectProfile);
   const profile = useActiveProfile();
@@ -56,7 +58,9 @@ export default function App() {
       ? null
       : screen.name === 'level' || screen.name === 'results'
         ? (getLevel(screen.levelId)?.theme ?? 'meadow')
-        : 'meadow';
+        : screen.name === 'map' && profile
+          ? WORLDS[(mapWorld ?? currentWorld(profile)) - 1].theme
+          : 'meadow';
 
   useEffect(() => {
     audio.setMusic(theme && !locked ? THEMES[theme] : null);

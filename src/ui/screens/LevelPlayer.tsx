@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { audio } from '../../audio/engine';
 import { speak, stopSpeaking } from '../../audio/voice';
-import { generateRounds, getLevel, SPEED_TARGET_MS, type Round, type RoundKind } from '../../core/levels';
+import { generateRounds, getLevel, isTimed, SPEED_TARGET_MS, type Round } from '../../core/levels';
+import { topReversals } from '../../core/profiles';
 import { scoreLevel, speedWeightForAge, type RoundOutcome } from '../../core/scoring';
 import type { Profile } from '../../core/types';
 import { useApp } from '../../state/appStore';
@@ -18,7 +19,11 @@ import {
 import { IconButton } from '../components/IconButton';
 import { Instruction } from '../components/Instruction';
 import { Mascot, type MascotMood } from '../components/Mascot';
+import { BodyRound } from '../rounds/BodyRound';
+import { DirectionRound } from '../rounds/DirectionRound';
 import { FacingRound } from '../rounds/FacingRound';
+import { PathRound } from '../rounds/PathRound';
+import { SequenceRound } from '../rounds/SequenceRound';
 import { JudgeRound } from '../rounds/JudgeRound';
 import { PickRound } from '../rounds/PickRound';
 import { SideRound } from '../rounds/SideRound';
@@ -28,6 +33,14 @@ import { WriteRound } from '../rounds/WriteRound';
 function RoundView(props: RoundProps<Round>) {
   const { round } = props;
   switch (round.kind) {
+    case 'body':
+      return <BodyRound {...props} round={round} />;
+    case 'direction':
+      return <DirectionRound {...props} round={round} />;
+    case 'path':
+      return <PathRound {...props} round={round} />;
+    case 'sequence':
+      return <SequenceRound {...props} round={round} />;
     case 'side':
       return <SideRound {...props} round={round} />;
     case 'facing':
@@ -42,7 +55,20 @@ function RoundView(props: RoundProps<Round>) {
 }
 
 /** Calm pacing: time to enjoy a right answer, or to look at a hint, before moving on. */
-const FEEDBACK_MS = { correct: 1600, tryAgain: 2000, flip: 2800, reveal: 3500 };
+const FEEDBACK_MS = { correct: 1600, tryAgain: 2000, flip: 2800, reveal: 3500, done: 900 };
+
+/**
+ * Which ghost-hand demo a round needs. Memory writing looks different from tracing, and a
+ * "listen" pick differs from a "which way round" pick, so each gets its own first-time demo.
+ * Body warm-ups are their own demonstration: no ghost hand.
+ */
+function demoKey(r: Round): string | null {
+  if (r.kind === 'body') return null;
+  if (r.kind === 'write' && r.modelMs) return 'write:memory';
+  if (r.kind === 'direction') return r.compareTo ? 'direction:same' : 'direction:where';
+  if (r.kind === 'pick') return r.options.some((o) => o.glyphId !== r.target) ? 'pick:listen' : 'pick';
+  return r.kind;
+}
 
 export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Profile }) {
   const level = getLevel(levelId)!;
@@ -51,23 +77,28 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
   const recordReversal = useApp((s) => s.recordReversal);
 
   const [seed] = useState(() => Math.floor(Math.random() * 1e9));
-  const rounds = useMemo(() => generateRounds(level, profile.age, seed), [level, profile.age, seed]);
-  // A separate example round per kind for the ghost-hand demo, so the demo never gives away a scored answer.
+  // The grand review leans towards the characters this child reverses most. Fixed for the attempt.
+  const [focus] = useState(() => topReversals(profile, 4).map(([k]) => k));
+  const rounds = useMemo(() => generateRounds(level, profile.age, seed, focus), [level, profile.age, seed, focus]);
+  // A separate example round per demo type, so the demo never gives away a scored answer.
   const demoRounds = useMemo(() => {
-    const sample = generateRounds(level, profile.age, seed + 1);
-    const map = new Map<RoundKind, Round>();
-    for (const r of sample) if (!map.has(r.kind)) map.set(r.kind, r);
+    const map = new Map<string, Round>();
+    for (const s of [1, 2, 3])
+      for (const r of generateRounds(level, profile.age, seed + s, focus)) {
+        const k = demoKey(r);
+        if (k && !map.has(k)) map.set(k, r);
+      }
     return map;
-  }, [level, profile.age, seed]);
+  }, [level, profile.age, seed, focus]);
 
   const [index, setIndex] = useState(0);
   const [tries, setTries] = useState(1);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [showIntro, setShowIntro] = useState(true);
   const [feedbackKind, setFeedbackKind] = useState<FeedbackKind | null>(null);
-  const [demoKind, setDemoKind] = useState<RoundKind | null>(rounds[0].kind);
+  const [demoKind, setDemoKind] = useState<string | null>(demoKey(rounds[0]));
   const [demoFinished, setDemoFinished] = useState(false);
-  const seenKinds = useRef(new Set<RoundKind>([rounds[0].kind]));
+  const seenKinds = useRef(new Set<string | null>([demoKey(rounds[0])]));
   const outcomes = useRef<RoundOutcome[]>([]);
   const roundStart = useRef(0);
   const [mood, setMood] = useState<MascotMood>('idle');
@@ -119,8 +150,8 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
     }
     setIndex(next);
     roundStart.current = performance.now();
-    const kind = rounds[next].kind;
-    if (!seenKinds.current.has(kind)) {
+    const kind = demoKey(rounds[next]);
+    if (kind && !seenKinds.current.has(kind)) {
       seenKinds.current.add(kind);
       setDemoKind(kind);
     }
@@ -138,6 +169,15 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       return;
     }
     const timeMs = performance.now() - roundStart.current;
+    if (round.kind === 'body') {
+      // Warm-ups are not scored: a calm "Great" and on we go.
+      audio.play('tap');
+      setFeedback('correct');
+      setFeedbackKind('done');
+      later(FEEDBACK_MS.done, advance);
+      return;
+    }
+    const timed = isTimed(round);
     if (a.reversal) recordReversal(a.reversal);
     if (a.correct) {
       outcomes.current.push({
@@ -146,6 +186,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
         timeMs,
         targetMs: SPEED_TARGET_MS[round.kind],
         goodStart: a.goodStart,
+        timed,
       });
       audio.play('correct');
       setMood('happy');
@@ -158,8 +199,9 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       audio.play('gentle');
       setMood('thinking');
       setFeedback('tryAgain');
-      setFeedbackKind(a.feedback === 'mirrored' || a.feedback === 'flipped' ? a.feedback : 'tryAgain');
-      later(a.feedback === 'mirrored' || a.feedback === 'flipped' ? FEEDBACK_MS.flip : FEEDBACK_MS.tryAgain, () => {
+      const special = a.feedback === 'mirrored' || a.feedback === 'flipped' || a.feedback === 'start';
+      setFeedbackKind(special ? (a.feedback! as FeedbackKind) : 'tryAgain');
+      later(special ? FEEDBACK_MS.flip : FEEDBACK_MS.tryAgain, () => {
         setFeedback(null);
         setFeedbackKind(null);
         setTries(2);
@@ -168,7 +210,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       return;
     }
     // Second miss: calmly show the right answer, then move on. No "fail" sound.
-    outcomes.current.push({ correct: false, tries, timeMs, targetMs: SPEED_TARGET_MS[round.kind] });
+    outcomes.current.push({ correct: false, tries, timeMs, targetMs: SPEED_TARGET_MS[round.kind], timed });
     setFeedback('reveal');
     setFeedbackKind('reveal');
     setMood('idle');
@@ -200,11 +242,11 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
           label="show me how"
           onClick={() => {
             setDemoFinished(false);
-            setDemoKind(round.kind);
+            setDemoKind(demoKey(round));
           }}
           testId="level-help"
           size={60}
-          disabled={!!demoKind}
+          disabled={!!demoKind || round.kind === 'body'}
         >
           <svg width="30" height="30" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="9" fill="none" stroke="#8fa3b5" strokeWidth="2" />

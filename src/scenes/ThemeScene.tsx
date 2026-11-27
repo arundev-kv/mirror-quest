@@ -160,7 +160,7 @@ function Hills({ color = '#7cc46a' }: { color?: string }) {
 
 const FLOWER_COLORS = ['#f6c945', '#ffffff', '#e4572e', '#9b7fd1', '#f29fc5'];
 
-function Meadow({ chalet = false }: { chalet?: boolean }) {
+function Meadow({ chalet = false, village = false }: { chalet?: boolean; village?: boolean }) {
   const flowers = useMemo(() => {
     const rng = createRng(11);
     return Array.from({ length: 26 }, () => ({
@@ -178,6 +178,13 @@ function Meadow({ chalet = false }: { chalet?: boolean }) {
       <Tree position={[-5.4, -2.2, -7]} scale={1.2} />
       <Tree position={[6.8, -2.2, -6]} scale={1.4} color="#357f3c" />
       {chalet && <Chalet position={[4.5, -2.2, -8]} />}
+      {village && (
+        <>
+          <Chalet position={[-2.5, -2.2, -10]} />
+          <Chalet position={[1.2, -2.2, -11]} />
+          <Chalet position={[8.5, -2.2, -11]} />
+        </>
+      )}
       {flowers.map((f, i) => (
         <Flower key={i} {...f} />
       ))}
@@ -288,7 +295,7 @@ function SceneContent({ theme }: { theme: ThemeId }) {
     case 'hut':
       return <Meadow chalet />;
     case 'village':
-      return <Meadow chalet />;
+      return <Meadow chalet village />;
     case 'castle':
       return <Castle />;
   }

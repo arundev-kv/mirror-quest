@@ -19,12 +19,23 @@ interface UiState {
   /** A stretch break is due and will be shown at the next calm moment. */
   breakDue: boolean;
   setBreakDue: (v: boolean) => void;
+  /** World shown on the map (1-6); null = the child's current world. */
+  mapWorld: number | null;
+  setMapWorld: (w: number | null) => void;
 }
 
 export const useUi = create<UiState>()((set) => ({
   screen: { name: 'profiles' },
   navId: 0,
-  go: (screen) => set((st) => ({ screen, navId: st.navId + 1 })),
+  go: (screen) =>
+    set((st) => ({
+      screen,
+      navId: st.navId + 1,
+      // Back on the map after playing (or for another child), open the child's current world.
+      mapWorld: screen.name === 'level' || screen.name === 'profiles' ? null : st.mapWorld,
+    })),
   breakDue: false,
   setBreakDue: (breakDue) => set({ breakDue }),
+  mapWorld: null,
+  setMapWorld: (mapWorld) => set({ mapWorld }),
 }));

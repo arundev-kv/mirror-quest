@@ -1,5 +1,5 @@
 import { AVATAR_IDS } from './profiles';
-import type { AppData, Profile, Settings } from './types';
+import type { AppData, LevelProgress, Profile, Settings } from './types';
 
 /**
  * Versioned storage schema. Everything lives in browser localStorage under one key.
@@ -7,7 +7,7 @@ import type { AppData, Profile, Settings } from './types';
  */
 
 export const STORAGE_KEY = 'mirror-quest';
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.35, sfxVolume: 0.6, muted: false, voice: true };
 
@@ -21,6 +21,21 @@ type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 const MIGRATIONS: Record<number, Migration> = {
   // v1 -> v2: spoken instructions were added, on by default.
   1: (d) => ({ ...d, settings: { ...((d.settings as object) ?? {}), voice: true } }),
+  // v2 -> v3: 30 levels. The old level 2 (b) is now level 7, and levels record mastery days.
+  2: (d) => ({
+    ...d,
+    profiles: Array.isArray(d.profiles)
+      ? d.profiles.map((p: unknown) => {
+          if (!p || typeof p !== 'object') return p;
+          const prof = p as { levels?: Record<string, object> };
+          const levels: Record<string, object> = {};
+          for (const [id, lp] of Object.entries(prof.levels ?? {})) {
+            levels[id === 'L02' ? 'L07' : id] = { ...lp, masteredOn: [] };
+          }
+          return { ...prof, levels };
+        })
+      : d.profiles,
+  }),
 };
 
 export function migrate(raw: unknown, fromVersion: number): AppData {
@@ -36,6 +51,23 @@ export function migrate(raw: unknown, fromVersion: number): AppData {
 const clamp01 = (n: unknown, fallback: number) =>
   typeof n === 'number' && Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : fallback;
 
+function sanitizeLevels(raw: unknown): Profile['levels'] {
+  if (!raw || typeof raw !== 'object') return {};
+  const out: Profile['levels'] = {};
+  for (const [id, lp] of Object.entries(raw as Record<string, Partial<LevelProgress>>)) {
+    if (!lp || typeof lp !== 'object' || typeof lp.bestScore !== 'number') continue;
+    out[id] = {
+      bestScore: lp.bestScore,
+      bestStars: lp.bestStars ?? 1,
+      attempts: typeof lp.attempts === 'number' ? lp.attempts : 1,
+      bestTimeMs: typeof lp.bestTimeMs === 'number' ? lp.bestTimeMs : null,
+      lastPlayedAt: typeof lp.lastPlayedAt === 'number' ? lp.lastPlayedAt : 0,
+      masteredOn: Array.isArray(lp.masteredOn) ? lp.masteredOn.filter((d) => typeof d === 'string') : [],
+    };
+  }
+  return out;
+}
+
 function sanitizeProfile(p: unknown): Profile | null {
   if (!p || typeof p !== 'object') return null;
   const q = p as Partial<Profile>;
@@ -49,7 +81,7 @@ function sanitizeProfile(p: unknown): Profile | null {
     avatarId:
       typeof q.avatarId === 'string' && (AVATAR_IDS as readonly string[]).includes(q.avatarId) ? q.avatarId : 'cat',
     createdAt: typeof q.createdAt === 'number' ? q.createdAt : now,
-    levels: q.levels && typeof q.levels === 'object' ? q.levels : {},
+    levels: sanitizeLevels(q.levels),
     reversals: q.reversals && typeof q.reversals === 'object' ? q.reversals : {},
     usage:
       q.usage && typeof q.usage.date === 'string' && typeof q.usage.usedMs === 'number'

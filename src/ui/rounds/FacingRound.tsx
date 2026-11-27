@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { screenSideForFacing, type Round } from '../../core/levels';
+import { screenSideForFacing, type RoundOf } from '../../core/rounds';
 import type { Side } from '../../core/types';
 import { GhostHand } from '../components/GhostHand';
 import { HandIcon } from '../components/HandIcon';
 import { SIDE_COLORS } from '../components/sideColors';
 import type { RoundProps } from './types';
 
-type R = Extract<Round, { kind: 'facing' }>;
+type R = RoundOf<'facing'>;
 
 /** Stage size; the friend's hands sit at HAND_X from each edge. */
 const STAGE_W = 560;

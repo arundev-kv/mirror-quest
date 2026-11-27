@@ -7,7 +7,7 @@ import { arc, dot, join, line, type Stroke } from './geometry';
  * Uppercase, digits and signs: top 10, baseline 90.
  */
 
-export type GlyphKind = 'lower' | 'upper' | 'digit' | 'sign';
+export type GlyphKind = 'lower' | 'upper' | 'digit' | 'sign' | 'stroke';
 
 export interface Glyph {
   id: string;
@@ -16,14 +16,17 @@ export interface Glyph {
   strokes: Stroke[];
   /** A picture anchor that helps remember the direction (emoji renders offline from system fonts). */
   anchor?: string;
+  /** Spoken name when it differs from the character (strokes: "line", "circle"). */
+  say?: string;
 }
 
-const g = (id: string, char: string, kind: GlyphKind, strokes: Stroke[], anchor?: string): Glyph => ({
+const g = (id: string, char: string, kind: GlyphKind, strokes: Stroke[], anchor?: string, say?: string): Glyph => ({
   id,
   char,
   kind,
   strokes,
   anchor,
+  say,
 });
 
 const cShape = (cx = 50, cy = 70, r = 20) => arc(cx, cy, r, r, -35, -325);
@@ -56,6 +59,7 @@ export const GLYPHS: Record<string, Glyph> = Object.fromEntries(
     ),
     g('i', 'i', 'lower', [line([50, 50], [50, 90]), dot(50, 34)], '🍦'),
     g('j', 'j', 'lower', [join(line([60, 50], [60, 102]), arc(46, 102, 14, 12, 0, 160)), dot(60, 34)], '🧃'),
+    g('l', 'l', 'lower', [line([50, 10], [50, 90])], '🕯️'),
     g('k', 'k', 'lower', [line([30, 10], [30, 90]), line([66, 48], [30, 72], [68, 90])], '🪁'),
     g(
       'n',
@@ -165,7 +169,13 @@ export const GLYPHS: Record<string, Glyph> = Object.fromEntries(
     ),
     g('9', '9', 'digit', [join(arc(50, 32, 20, 22, -10, -370), line([70, 28], [68, 90]))], '🎈'),
 
-    // ---------- signs ----------
+    // ---------- pre-writing strokes (level 3-4): always from the start dot, the writing way ----------
+    g('vline', '|', 'stroke', [line([50, 12], [50, 108])], undefined, 'line'),
+    g('hline', '—', 'stroke', [line([8, 60], [92, 60])], undefined, 'line'),
+    // The "magic c" turn: start at about 2 o'clock and go anticlockwise, all the way round.
+    g('circle', '○', 'stroke', [arc(50, 60, 38, 38, -35, -395)], undefined, 'circle'),
+
+    // ---------- signs (not taught; kept for old saves) ----------
     g('plus', '+', 'sign', [line([50, 25], [50, 75]), line([25, 50], [75, 50])]),
     g('minus', '-', 'sign', [line([25, 50], [75, 50])]),
     g('equals', '=', 'sign', [line([25, 40], [75, 40]), line([25, 62], [75, 62])]),
@@ -188,3 +198,15 @@ export function getGlyph(id: string): Glyph {
 
 /** Glyphs whose mirror image is itself another real glyph. Pick rounds for these need a visible reference. */
 export const AMBIGUOUS_MIRROR = new Set(['b', 'd', 'p', 'q']);
+
+/** Glyphs with a diagonal stroke (a 5-year shape): younger children keep a strong guide on these. */
+export const DIAGONAL_GLYPHS = new Set(['7', 'z', 'k', 'Z', 'N', 'K']);
+
+/** The movement family a letter is taught in: "stick" letters start with a tall line, "c" letters with the magic c. */
+export const MOTOR_FAMILY: Record<string, 'stick' | 'c'> = { b: 'stick', p: 'stick', d: 'c', q: 'c' };
+
+/** What the voice says for a glyph. */
+export function glyphSpeech(id: string): string {
+  const gl = getGlyph(id);
+  return gl.say ?? gl.char;
+}

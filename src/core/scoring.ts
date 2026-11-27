@@ -9,6 +9,8 @@ export interface RoundOutcome {
   targetMs: number;
   /** Handwriting only: started at the right spot and went the right way. */
   goodStart?: boolean;
+  /** Counts towards the speed share. Handwriting is never timed. Defaults to true. */
+  timed?: boolean;
 }
 
 export interface LevelResult {
@@ -17,14 +19,19 @@ export interface LevelResult {
   speed: number;
   stars: Stars;
   totalTimeMs: number;
+  /** Share of rounds right first time (and from the right start): the mastery measure. */
+  firstTryRate: number;
 }
 
 /**
  * Speed matters little: time pressure raises anxiety and errors in young children with
- * learning difficulties. Younger children get even less weight on speed.
+ * learning difficulties. Age 3: none at all (time is still stored for parents).
  */
 export function speedWeightForAge(age: number): number {
-  return age <= 4 ? 0.1 : 0.2;
+  if (age <= 3) return 0;
+  if (age === 4) return 0.1;
+  if (age === 5) return 0.15;
+  return 0.2;
 }
 /** Minimum score to unlock the next level (2 stars). */
 export const UNLOCK_SCORE = 70;
@@ -49,23 +56,48 @@ export function starsFor(score: number): Stars {
   return 1; // finishing a level always earns a star
 }
 
+export const isFirstTry = (o: RoundOutcome) => o.correct && o.tries <= 1 && o.goodStart !== false;
+
 export function scoreLevel(outcomes: RoundOutcome[], speedWeight = 0.2): LevelResult {
-  if (outcomes.length === 0) return { score: 0, accuracy: 0, speed: 0, stars: 1, totalTimeMs: 0 };
+  if (outcomes.length === 0) return { score: 0, accuracy: 0, speed: 0, stars: 1, totalTimeMs: 0, firstTryRate: 0 };
   const accuracy = outcomes.reduce((a, o) => a + roundAccuracy(o), 0) / outcomes.length;
-  // Speed only counts for rounds the child got right, so rushing doesn't pay.
-  const speed = outcomes.reduce((a, o) => a + (o.correct ? roundSpeed(o) : 0), 0) / outcomes.length;
-  const score = Math.round(100 * ((1 - speedWeight) * accuracy + speedWeight * speed));
+  // Speed only counts for timed rounds the child got right, so rushing doesn't pay.
+  const timed = outcomes.filter((o) => o.timed !== false);
+  const speed = timed.length ? timed.reduce((a, o) => a + (o.correct ? roundSpeed(o) : 0), 0) / timed.length : 0;
+  // The speed share shrinks with the share of untimed (handwriting) rounds: a writing level is all accuracy.
+  const w = speedWeight * (timed.length / outcomes.length);
+  const score = Math.round(100 * ((1 - w) * accuracy + w * speed));
   return {
     score,
     accuracy,
     speed,
     stars: starsFor(score),
     totalTimeMs: outcomes.reduce((a, o) => a + o.timeMs, 0),
+    firstTryRate: outcomes.filter(isFirstTry).length / outcomes.length,
   };
 }
 
+/** Days on which the mastery criterion must be met (recall on a second day = learned, not just warm). */
+export const MASTERY_DAYS = 2;
+
+export function isMastered(p: LevelProgress | undefined): boolean {
+  return !!p && (p.masteredOn?.length ?? 0) >= MASTERY_DAYS;
+}
+
+/** Add today's date when the run met the level's mastery criterion. Keeps the latest few distinct dates. */
+export function recordMastery(prev: string[] | undefined, met: boolean, dateKey: string): string[] {
+  const days = prev ?? [];
+  if (!met || days.includes(dateKey)) return days;
+  return [...days, dateKey].slice(-5);
+}
+
 /** Retries keep the best score (ties keep the faster time). */
-export function mergeBest(prev: LevelProgress | undefined, result: LevelResult, now: number): LevelProgress {
+export function mergeBest(
+  prev: LevelProgress | undefined,
+  result: LevelResult,
+  now: number,
+  masteredOn: string[] = prev?.masteredOn ?? [],
+): LevelProgress {
   if (!prev) {
     return {
       bestScore: result.score,
@@ -73,6 +105,7 @@ export function mergeBest(prev: LevelProgress | undefined, result: LevelResult, 
       attempts: 1,
       bestTimeMs: result.totalTimeMs,
       lastPlayedAt: now,
+      masteredOn,
     };
   }
   const better =
@@ -84,5 +117,6 @@ export function mergeBest(prev: LevelProgress | undefined, result: LevelResult, 
     bestTimeMs: better ? result.totalTimeMs : prev.bestTimeMs,
     attempts: prev.attempts + 1,
     lastPlayedAt: now,
+    masteredOn,
   };
 }

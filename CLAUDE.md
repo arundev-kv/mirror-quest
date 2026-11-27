@@ -35,9 +35,10 @@ Vitest (unit) · Playwright (e2e) · oxlint + Prettier · Netlify hosting.
 - **Daily limit.** 30 min of ACTIVE play per profile per day (tab visible + input in the last 60 s). Sunset countdown from
   25 min; at 30 min a running level may finish (max 2 min grace), then the sleep screen. Resets at local midnight.
   There is **no unlock**, not even for parents. Clock moved backwards keeps the stored usage.
-- **Scoring.** Accuracy + a small speed share → 0–100 (speed 10% for ages 3–4, 20% for ages 5–6; generous speed
-  targets; calm pauses between rounds). A demo never advances by itself: the child taps "Your turn". Stars: 1 for finishing, 2 at ≥70 (unlocks the next level), 3 at ≥90.
-  Retries keep the best score.
+- **Scoring.** Accuracy + a small speed share → 0–100 (speed 0 / 10 / 15 / 20% for ages 3 / 4 / 5 / 6; handwriting and
+  body warm-ups are never timed; generous speed targets; calm pauses between rounds). A demo never advances by itself:
+  the child taps "Your turn". Stars: 1 for finishing, 2 at ≥70 (unlocks the next level), 3 at ≥90. Retries keep the best
+  score. **Mastery** (the level's first-try criterion reached on two different days) gates world 5 and is shown to parents.
 - **Input.** Laptop first (mouse/trackpad) but use Pointer Events so touch and stylus work. Hit targets ≥ 64 px.
 
 ## Commands
@@ -49,9 +50,11 @@ Vitest (unit) · Playwright (e2e) · oxlint + Prettier · Netlify hosting.
 
 ## Adding a level
 
-1. Add a `LevelConfig` to `LEVELS` in `src/core/levels.ts` (id `L03`, theme, icon, recipe).
+1. Add a `LevelConfig` to `LEVELS` in `src/core/levels.ts` with `L(n, world, {...})` (title, intro, skill, icon,
+   mastery, recipe). Use the recipe helpers (`trace`, `write`, `memory`, `judge`, `body`). Age adapters (guide floor,
+   hints, option counts) are applied in `buildRound`, not per level.
 2. If it uses new glyphs, add stroke templates to `src/core/glyphs.ts` in teaching order/direction; the recognizer
    tests run over every glyph automatically.
-3. `npm test` checks round counts (8–12 per age) and glyph ids.
+3. `npm test` checks scored round counts (8–12 per age; body warm-ups excluded), glyph ids and one correct option.
 
-See `docs/LEVEL_PLAN.md` for the planned 30 levels.
+See `docs/LEVEL_PLAN.md` for the 30 levels and the clinical reasoning behind each.

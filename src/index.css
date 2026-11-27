@@ -369,6 +369,8 @@ input:focus-visible {
 }
 .skip-demo {
   position: absolute;
+  /* Above the "Your turn" overlay, so skipping always works. */
+  z-index: 6;
   right: 12px;
   top: 12px;
   width: 64px;
@@ -937,4 +939,193 @@ input:focus-visible {
 .your-turn strong {
   font-size: 2rem;
   color: var(--sage-deep);
+}
+
+/* ---------- 30-level map ---------- */
+.world-chips {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 4px 12px 0;
+}
+.world-chip {
+  min-width: 72px;
+  min-height: 64px;
+  border-radius: 20px;
+  border: 4px solid;
+  background: var(--card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1.6rem;
+  color: var(--ink-soft);
+  box-shadow: 0 4px 0 #0000000d;
+}
+.world-chip b {
+  font-size: 1.1rem;
+}
+.world-chip.is-current {
+  background: #fffbe6;
+  transform: translateY(-3px);
+  box-shadow: 0 7px 0 #00000014;
+}
+.world-chip.is-locked {
+  opacity: 0.65;
+}
+.map .level-path {
+  gap: clamp(16px, 3.5vw, 56px);
+}
+.map .stone {
+  width: clamp(104px, 13vw, 140px);
+  height: clamp(104px, 13vw, 140px);
+  position: relative;
+}
+.map .stone-title {
+  max-width: 170px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+.stone-mastered {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  font-size: 1.6rem;
+}
+.stone-note {
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+/* ---------- new round kinds ---------- */
+.creature-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border-radius: 36px;
+  padding: 12px 40px;
+  box-shadow: 0 10px 30px #00000012;
+}
+.choice-row {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+}
+.choice-btn {
+  min-width: 120px;
+  min-height: 96px;
+  border-radius: 30px;
+  border: 5px solid #e6dccb;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 0 #0000000d;
+}
+.path-track {
+  position: relative;
+  display: flex;
+  gap: clamp(14px, 3vw, 36px);
+  padding: 18px;
+  background: #fff8e6cc;
+  border-radius: 36px;
+}
+.path-track.is-column {
+  flex-direction: column;
+}
+.path-arrow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.path-item {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: none;
+  background: var(--card);
+  font-size: 3.2rem;
+  box-shadow: 0 6px 0 #0000000d;
+}
+.path-track.is-column .path-item {
+  width: 80px;
+  height: 80px;
+  font-size: 2.6rem;
+}
+.round--body .body-stage {
+  background: var(--card);
+  border-radius: 36px;
+  padding: 16px 40px;
+  box-shadow: 0 10px 30px #00000012;
+}
+.body-pair {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.sky-drawing {
+  padding: 8px;
+}
+.seq-card {
+  min-width: 150px;
+  min-height: 110px;
+  padding: 10px 16px;
+  border-radius: 30px;
+  border: none;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow:
+    0 8px 0 #0000000d,
+    0 14px 30px #00000012;
+}
+.seq-card.is-right {
+  background: #eef5ef;
+}
+.seq-picture {
+  font-size: 5rem;
+  line-height: 1;
+}
+.beads {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+}
+.bead-bar,
+.bead-ones {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 3px;
+}
+.bead-bar {
+  background: #e6dccb;
+  padding: 4px;
+  border-radius: 12px;
+}
+.bead-bar i,
+.bead-ones i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f2c14e;
+  border: 2px solid #d9a520;
+}
+.bead-ones i {
+  background: #7cc4ef;
+  border-color: #2f86c4;
+}
+.prompt-card.is-hidden {
+  opacity: 0.7;
+}
+.note-small {
+  font-size: 0.9rem;
 }
