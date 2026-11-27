@@ -32,7 +32,7 @@ Every level below says what skill it trains, how the child practises it, when it
 | **write** | Writes with a faint guide (0.3), then with no guide. "Memory" = model shown for 2 s, then hidden.                                       | `write` with low or 0 opacity; memory needs a new `showModelMs` option |
 | **body**  | A 20–30 s off-screen movement with a ghost-hand demo, then one tap ("Done"). **Not scored**; it does not count towards the 8–12 rounds. | new `body` kind                                                        |
 
-New round kinds needed for some levels: `direction` (which way is the animal going, level 2), `path` (follow from left to right, level 3), `body`, `sequence` (word or number the right way round, level 28). Glyphs still to add: **l, h, n, r, g, 8, <, >**.
+New round kinds needed for some levels: `direction` (which way is the animal going, level 2), `path` (follow from left to right, level 3), `body`, `sequence` (word or number the right way round, level 28). Glyphs still to add: **l, h, n, r, g, 8**. Signs are not taught (Arun's decision).
 
 ## 3. Scoring and mastery
 
@@ -276,21 +276,21 @@ Digits sit between learning d and contrasting b/d on purpose: a few days of othe
 
 ### World 6: Castle, using it (ages 5–6)
 
-**26. Tricky turners: s, z, j and S, Z, J, N**
+**26. Tricky small letters: s, z and j**
 
-- **Skill:** the remaining left-facing and often-reversed characters.
-- **Activity:** trace, write (guide 0.3 → 0), judge.
-- **Rounds:** 10 / 12. **Age:** 5+ (z, Z, N have diagonals).
+- **Skill:** the remaining left-facing, often-reversed lowercase letters.
+- **Activity:** body (skywrite s and z), trace (0.6), write (0.3 → 0), judge.
+- **Rounds:** 10 / 12. **Age:** 5+ (z has a diagonal).
+- **Mastery:** 80%, including two memory rounds.
+- **Rationale:** z and j face left, so the right-writing rule flips them. s has no stick or c to anchor it, so it needs its own start ("start like c, then swing back").
+
+**27. Tricky capitals: S, Z, J and N**
+
+- **Skill:** the capitals children reverse most.
+- **Activity:** trace (0.6), write (0.3 → 0), judge, then pick the capital to match its small letter (S–s, Z–z, J–j).
+- **Rounds:** 8 / 10. **Age:** 5+ (Z and N have diagonals).
 - **Mastery:** 80%.
-- **Rationale:** z, j, J and N are among the most reversed characters at 5–6. Kept late because of the diagonals.
-
-**27. Signs: ? < > and arrows**
-
-- **Skill:** orientation of signs that _can_ be reversed.
-- **Activity:** trace and write ?, pick < or > ("points to the small one"), pick ← or → (ties back to level 2).
-- **Rounds:** 8 / 10. **Age:** 5+.
-- **Mastery:** 80%.
-- **Rationale:** + − = look the same in a mirror, so they cannot train orientation. They appear only as easy stroke warm-ups. ? and < > are the signs children really reverse.
+- **Rationale:** most capitals are seldom reversed, but these four are, and they appear in children's names, which they write more than anything else. Split from level 26 so neither level carries too many new shapes at once.
 
 **28. Left to right: words and numbers**
 
@@ -329,7 +329,7 @@ Digits sit between learning d and contrasting b/d on purpose: a few days of othe
 3. Scoring: speed weight by age (0 / 10 / 15 / 20%); `write` rounds never speed-scored.
 4. Mastery on two different days, stored per level, to gate world 5.
 5. New round kinds: `direction`, `path`, `body`, `sequence`; memory option on `write`.
-6. New glyphs: l, h, n, r, g, 8, <, >.
+6. New glyphs: l, h, n, r, g, 8. Signs are out of scope, so the existing plus, minus, equals, question and exclaim glyphs are unused.
 7. Age adapters: guide floor 0.6 at age 3, 0.3 at age 4, 0 at 5–6.
 
 _This plan follows common clinical practice (Orton-Gillingham, Handwriting Without Tears, errorless learning, Beery VMI developmental norms, J.-P. Fischer's research on mirror writing). It is a design for a practice game, not a substitute for assessment by a qualified professional._
