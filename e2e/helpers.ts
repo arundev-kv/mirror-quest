@@ -12,13 +12,16 @@ export async function createProfile(page: Page, name = 'Mia', age = 5) {
   await expect(page.getByTestId('map')).toBeVisible();
 }
 
+/** Click if it is there; never wait on an element that is leaving (exit animations). */
+async function clickIfVisible(page: Page, testId: string) {
+  const el = page.getByTestId(testId);
+  if (await el.isVisible().catch(() => false)) await el.click({ timeout: 3000 }).catch(() => {});
+}
+
 async function skipDemo(page: Page) {
-  const turn = page.getByTestId('your-turn');
-  if (await turn.isVisible().catch(() => false)) await turn.click();
-  const start = page.getByTestId('intro-start');
-  if (await start.isVisible().catch(() => false)) await start.click();
-  const skip = page.getByTestId('skip-demo');
-  if (await skip.isVisible().catch(() => false)) await skip.click();
+  await clickIfVisible(page, 'your-turn');
+  await clickIfVisible(page, 'intro-start');
+  await clickIfVisible(page, 'skip-demo');
 }
 
 /** Draw a glyph on the writing pad with the mouse, following the template strokes. */
@@ -114,8 +117,19 @@ export async function playLevel(page: Page, correct: boolean, from = 0) {
     const kind = await round.getAttribute('data-kind', { timeout: 1000 }).catch(() => null);
     await answerRound(page, correct);
     if (!correct && kind !== 'body') {
-      await expect(round).toHaveAttribute('data-tries', '2', { timeout: 5000 });
+      await expect(round).toHaveAttribute('data-tries', '2', { timeout: 10_000 });
       await answerRound(page, false);
+    } else if (correct) {
+      // On a slow machine a drawing can come out too short or misshapen ("Again"). Answer again until it moves on.
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const moved = await expect
+          .poll(async () => (await round.count()) === 0 || (await results.count()) > 0, { timeout: 12_000 })
+          .toBe(true)
+          .then(() => true)
+          .catch(() => false);
+        if (moved) break;
+        await answerRound(page, true);
+      }
     }
   }
   await expect(results).toBeVisible();

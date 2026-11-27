@@ -9,6 +9,9 @@ export default defineConfig({
     baseURL: 'http://localhost:4173',
     viewport: { width: 1280, height: 800 },
     trace: 'retain-on-failure',
+    // The game honours prefers-reduced-motion: the 3D backdrop then renders on demand instead of every frame.
+    // Software WebGL on 2-core CI runners is otherwise slow enough to starve the game's own timers.
+    reducedMotion: 'reduce',
   },
   projects: [
     {

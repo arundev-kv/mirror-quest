@@ -369,6 +369,8 @@ input:focus-visible {
 }
 .skip-demo {
   position: absolute;
+  /* Above the "Your turn" overlay, so skipping always works. */
+  z-index: 6;
   right: 12px;
   top: 12px;
   width: 64px;
