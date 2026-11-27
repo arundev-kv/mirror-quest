@@ -22,7 +22,7 @@ export function SideRound({ round, onAnswer, demo, onDemoDone, feedback }: Round
   return (
     <div className="round round--side">
       <div className="prompt-card" data-testid="prompt" data-target={round.target}>
-        <HandIcon side={round.target} size={96} />
+        <HandIcon side={round.target} size={88} label />
       </div>
       <div className="side-row">
         {(['left', 'right'] as const).map((side, i) => {
@@ -42,7 +42,7 @@ export function SideRound({ round, onAnswer, demo, onDemoDone, feedback }: Round
               <span className="side-emoji">{round.items[i]}</span>
               {round.hint && (
                 <span className="side-hint">
-                  <HandIcon side={side} size={40} />
+                  <HandIcon side={side} size={36} label />
                 </span>
               )}
             </motion.button>

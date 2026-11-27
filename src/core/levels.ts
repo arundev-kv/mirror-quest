@@ -121,6 +121,10 @@ export interface LevelConfig {
   skill: string;
   /** Icon shown on the level stone. */
   icon: string;
+  /** Short title shown on the map and the intro card. */
+  title: string;
+  /** One or two plain sentences a grown-up (or an early reader) can read out before playing. */
+  intro: string;
   recipe: RoundRecipe[];
 }
 
@@ -133,6 +137,9 @@ export const LEVELS: LevelConfig[] = [
     theme: 'meadow',
     skill: 'Left and right: my left and right, then a friend facing me',
     icon: '🖐️',
+    title: 'Left and Right',
+    intro:
+      'Hold up both hands with your thumbs out. Your LEFT hand makes an L! Tap the picture on the side the big hand shows.',
     recipe: [
       { kind: 'side', count: 5, extraForOlder: 1, hint: true },
       { kind: 'facing', count: 3, extraForOlder: 1, view: 'front', hint: true },
@@ -144,6 +151,9 @@ export const LEVELS: LevelConfig[] = [
     theme: 'ocean',
     skill: 'b and d: spot the right way round, then trace it',
     icon: '🐚',
+    title: 'b and d',
+    intro:
+      'The letter b has its round tummy on the RIGHT, like the start of a bed 🛏️. Find the b and d that face the right way, then trace them.',
     recipe: [
       { kind: 'pick', count: 3, extraForOlder: 1, glyphs: ['b', 'd'], showReference: true },
       { kind: 'judge', count: 2, glyphs: ['b', 'd'] },

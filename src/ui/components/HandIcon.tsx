@@ -6,9 +6,19 @@ import { SIDE_COLORS } from './sideColors';
  * The LEFT hand makes a proper "L" — the classic memory trick.
  * Left is always sage green; right is always sky blue (consistent colour anchors).
  */
-export function HandIcon({ side, size = 80, title }: { side: Side; size?: number; title?: string }) {
+export function HandIcon({
+  side,
+  size = 80,
+  title,
+  label,
+}: {
+  side: Side;
+  size?: number;
+  title?: string;
+  label?: boolean;
+}) {
   const color = SIDE_COLORS[side];
-  return (
+  const icon = (
     <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={title ?? `${side} hand`}>
       <g transform={side === 'right' ? 'translate(100 0) scale(-1 1)' : undefined}>
         {/* index finger */}
@@ -33,5 +43,12 @@ export function HandIcon({ side, size = 80, title }: { side: Side; size?: number
         )}
       </g>
     </svg>
+  );
+  if (!label) return icon;
+  return (
+    <span className="hand-label">
+      {icon}
+      <strong style={{ color, fontSize: Math.max(14, size * 0.24) }}>{side === 'left' ? 'LEFT' : 'RIGHT'}</strong>
+    </span>
   );
 }

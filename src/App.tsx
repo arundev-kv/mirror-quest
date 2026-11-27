@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { lazy, Suspense, useEffect } from 'react';
 import { audio } from './audio/engine';
+import { setVoiceOptions } from './audio/voice';
 import { getLevel, THEMES, type ThemeId } from './core/levels';
 import { countdownFraction, DAILY_LIMIT_MS, limitPhase } from './core/time';
 import { useActiveProfile, useApp } from './state/appStore';
@@ -37,7 +38,10 @@ export default function App() {
     window.addEventListener('pointerdown', unlock);
     return () => window.removeEventListener('pointerdown', unlock);
   }, []);
-  useEffect(() => audio.setVolumes(settings.musicVolume, settings.sfxVolume, settings.muted), [settings]);
+  useEffect(() => {
+    audio.setVolumes(settings.musicVolume, settings.sfxVolume, settings.muted);
+    setVoiceOptions(settings.voice && !settings.muted, Math.max(0.6, settings.sfxVolume));
+  }, [settings]);
 
   // Which screen needs a profile, and is today's time used up?
   const needsProfile = screen.name === 'map' || screen.name === 'level' || screen.name === 'results';

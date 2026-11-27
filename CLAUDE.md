@@ -20,9 +20,11 @@ Vitest (unit) · Playwright (e2e) · oxlint + Prettier · Netlify hosting.
   Rendering lives in `src/ui/` and `src/scenes/`.
 - **Data-driven levels.** A level is a `LevelConfig` entry in `src/core/levels.ts` (theme + recipe of round kinds).
   New content should not need new components unless it introduces a new round kind.
-- **Kids can't read, and there is no voice.** Every instruction is shown: a ghost-hand demo plays the first time a
-  round kind appears, and the "show me how" button replays it. Use icons, not words, in kid-facing UI.
-  Text is fine only on grown-up screens (parent gate/dashboard, create profile).
+- **Show, write and say every instruction.** Many players can't read yet. Each level opens with a short intro card,
+  every round has a one-line written instruction (`src/ui/copy.ts`, with LEFT in sage and RIGHT in sky), and the same
+  text is read aloud with the device's built-in American English voice (`src/audio/voice.ts`, Web Speech API, local
+  voices preferred so it stays offline). A ghost-hand demo plays the first time a round kind appears, and the
+  "show me how" button replays it. Keep instructions to one short sentence. Grown-ups can turn the voice off.
 - **Addiction-safe and calm.** Muted pastel palette (sage, sky, sand, lavender); no saturated red/neon, flashing or
   pulsing; no streaks, loot boxes, random rewards or "come back" nags. Stars only come from skill. Never a "fail" sound.
   Respect `prefers-reduced-motion`.

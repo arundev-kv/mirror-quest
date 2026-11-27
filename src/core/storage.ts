@@ -7,9 +7,9 @@ import type { AppData, Profile, Settings } from './types';
  */
 
 export const STORAGE_KEY = 'mirror-quest';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
-export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.35, sfxVolume: 0.6, muted: false };
+export const DEFAULT_SETTINGS: Settings = { musicVolume: 0.35, sfxVolume: 0.6, muted: false, voice: true };
 
 export function defaultData(): AppData {
   return { schemaVersion: SCHEMA_VERSION, profiles: [], settings: { ...DEFAULT_SETTINGS } };
@@ -19,8 +19,8 @@ type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
 /** MIGRATIONS[n] upgrades data from version n to n + 1. */
 const MIGRATIONS: Record<number, Migration> = {
-  // Example for the future:
-  // 1: (d) => ({ ...d, profiles: (d.profiles as Profile[]).map((p) => ({ ...p, newField: 0 })) }),
+  // v1 -> v2: spoken instructions were added, on by default.
+  1: (d) => ({ ...d, settings: { ...((d.settings as object) ?? {}), voice: true } }),
 };
 
 export function migrate(raw: unknown, fromVersion: number): AppData {
@@ -71,6 +71,7 @@ function sanitize(data: Record<string, unknown>): AppData {
       musicVolume: clamp01(s.musicVolume, DEFAULT_SETTINGS.musicVolume),
       sfxVolume: clamp01(s.sfxVolume, DEFAULT_SETTINGS.sfxVolume),
       muted: typeof s.muted === 'boolean' ? s.muted : false,
+      voice: typeof s.voice === 'boolean' ? s.voice : true,
     },
   };
 }

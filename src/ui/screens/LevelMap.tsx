@@ -63,6 +63,7 @@ export function LevelMap({ profile }: { profile: Profile }) {
                 <span className="stone-icon">{unlocked ? lvl.icon : '🔒'}</span>
                 <span className="stone-number">{lvl.number}</span>
               </motion.button>
+              <span className="stone-title">{lvl.title}</span>
               <StarRow stars={progress?.bestStars ?? 0} size={26} />
             </motion.div>
           );

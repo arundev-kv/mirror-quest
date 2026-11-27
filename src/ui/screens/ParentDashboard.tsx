@@ -214,6 +214,15 @@ export function ParentDashboard() {
           <label className="check">
             <input
               type="checkbox"
+              checked={settings.voice}
+              onChange={(e) => updateSettings({ voice: e.target.checked })}
+              data-testid="voice-toggle"
+            />{' '}
+            Read instructions aloud (American English voice)
+          </label>
+          <label className="check">
+            <input
+              type="checkbox"
               checked={settings.muted}
               onChange={(e) => updateSettings({ muted: e.target.checked })}
             />{' '}

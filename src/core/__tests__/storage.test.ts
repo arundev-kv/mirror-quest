@@ -22,6 +22,13 @@ describe('storage', () => {
     const p = createProfile({ name: 'Ben', age: 6, avatarId: 'fox' }, 0, 'b');
     expect(parseImport(serializeExport([p], 1))[0]).toEqual(p);
   });
+  it('migrates v1 data and turns the voice on', () => {
+    const d = migrate({ profiles: [], settings: { musicVolume: 0.2, sfxVolume: 0.5, muted: false } }, 1);
+    expect(d.settings.voice).toBe(true);
+    expect(d.settings.musicVolume).toBe(0.2);
+    expect(d.schemaVersion).toBe(2);
+  });
+
   it('rejects files that are not backups', () => {
     expect(() => parseImport('{"hello":1}')).toThrow();
     expect(() => parseImport('not json')).toThrow();

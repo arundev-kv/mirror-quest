@@ -5,7 +5,8 @@ A calm, offline learning game that helps kids aged 3–6 overcome **mirror writi
 
 - 🖐️ **Level 1 – Left & Right:** tap the thing on your left/right, then work out a friend's left/right when they face you.
 - 🐚 **Level 2 – b and d:** spot the one facing the right way, decide if a letter needs flipping, then trace it.
-- No reading needed and no voice: a ghost hand shows what to do.
+- Every instruction is shown three ways: a ghost-hand demo, a short written line, and an American English voice that
+  reads it aloud (the device's built-in voice, so it works offline; grown-ups can turn it off).
 - Handwriting is checked on the device (point-cloud recognizer) and **detects mirrored letters** specifically.
 - Scores: 70% accuracy + 30% speed, 1–3 stars, retries keep the best. The next level opens at 2 stars.
 - **30 minutes a day** per child, a gentle sunset countdown from 25 minutes, and a calm "see you tomorrow" screen.

@@ -13,7 +13,10 @@ test('play level 1 perfectly, unlock level 2, then play level 2', async ({ page 
   await createProfile(page);
   await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'false');
   await page.getByTestId('level-1').click();
-  await expect(page.getByTestId('demo')).toBeVisible(); // ghost-hand demo first
+  await expect(page.getByTestId('intro')).toContainText('Left and Right'); // written intro first
+  await page.getByTestId('intro-start').click();
+  await expect(page.getByTestId('demo')).toBeVisible(); // then the ghost-hand demo
+  await expect(page.getByTestId('instruction')).toContainText(/Tap the picture on your (LEFT|RIGHT) side/);
   await playLevel(page, true);
   await expect(page.getByTestId('results')).toHaveAttribute('data-stars', '3');
   await page.getByTestId('results-next').click();

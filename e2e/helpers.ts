@@ -13,6 +13,8 @@ export async function createProfile(page: Page, name = 'Mia', age = 5) {
 }
 
 async function skipDemo(page: Page) {
+  const start = page.getByTestId('intro-start');
+  if (await start.isVisible().catch(() => false)) await start.click();
   const skip = page.getByTestId('skip-demo');
   if (await skip.isVisible().catch(() => false)) await skip.click();
 }
@@ -78,6 +80,7 @@ export async function answerRound(page: Page, correct: boolean) {
 /** Play the whole level. correct=false misses every round twice. */
 export async function playLevel(page: Page, correct: boolean) {
   const results = page.getByTestId('results');
+  await skipDemo(page); // closes the intro card
   for (let i = 0; i < 20; i++) {
     // Wait for round i (after any exit animation of the previous one) or the results.
     const round = page.locator(`[data-testid="round"][data-index="${i}"]`);

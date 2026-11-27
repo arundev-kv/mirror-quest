@@ -1,12 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { audio } from '../../audio/engine';
+import { speak, stopSpeaking } from '../../audio/voice';
 import { generateRounds, getLevel, SPEED_TARGET_MS, type Round, type RoundKind } from '../../core/levels';
 import { scoreLevel, type RoundOutcome } from '../../core/scoring';
 import type { Profile } from '../../core/types';
 import { useApp } from '../../state/appStore';
 import { useUi } from '../../state/uiStore';
+import { FEEDBACK_TEXT, hintFor, instructionFor, instructionSpeech, type FeedbackKind } from '../copy';
 import { IconButton } from '../components/IconButton';
+import { Instruction } from '../components/Instruction';
 import { Mascot, type MascotMood } from '../components/Mascot';
 import { FacingRound } from '../rounds/FacingRound';
 import { JudgeRound } from '../rounds/JudgeRound';
@@ -52,6 +55,8 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
   const [index, setIndex] = useState(0);
   const [tries, setTries] = useState(1);
   const [feedback, setFeedback] = useState<Feedback>(null);
+  const [showIntro, setShowIntro] = useState(true);
+  const [feedbackKind, setFeedbackKind] = useState<FeedbackKind | null>(null);
   const [demoKind, setDemoKind] = useState<RoundKind | null>(rounds[0].kind);
   const seenKinds = useRef(new Set<RoundKind>([rounds[0].kind]));
   const outcomes = useRef<RoundOutcome[]>([]);
@@ -72,6 +77,19 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
     [],
   );
 
+  // Voice: read the intro, then each instruction when it appears, then feedback.
+  const spokenRound = demoKind ? (demoRounds.get(demoKind) ?? round) : round;
+  useEffect(() => {
+    if (showIntro) speak(`Level ${level.number}. ${level.title}. ${level.intro}`);
+    else if (demoKind) speak(`Watch the hand. ${instructionSpeech(spokenRound)}`);
+    else speak(instructionSpeech(spokenRound));
+    // Speak once per new round or demo, not on every re-render.
+  }, [showIntro, demoKind, index]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (feedbackKind) speak(FEEDBACK_TEXT[feedbackKind]);
+  }, [feedbackKind]);
+  useEffect(() => () => stopSpeaking(), []);
+
   const finish = useCallback(() => {
     const result = scoreLevel(outcomes.current);
     const previous = profile.levels[level.id];
@@ -82,6 +100,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
 
   const advance = useCallback(() => {
     setFeedback(null);
+    setFeedbackKind(null);
     setTries(1);
     setMood('idle');
     const next = index + 1;
@@ -122,6 +141,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       audio.play('correct');
       setMood('happy');
       setFeedback('correct');
+      setFeedbackKind('correct');
       later(FEEDBACK_MS.correct, advance);
       return;
     }
@@ -129,8 +149,10 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
       audio.play('gentle');
       setMood('thinking');
       setFeedback('tryAgain');
-      later(FEEDBACK_MS.tryAgain, () => {
+      setFeedbackKind(a.feedback === 'mirrored' || a.feedback === 'flipped' ? a.feedback : 'tryAgain');
+      later(a.feedback === 'mirrored' || a.feedback === 'flipped' ? 2200 : FEEDBACK_MS.tryAgain, () => {
         setFeedback(null);
+        setFeedbackKind(null);
         setTries(2);
         setMood('idle');
       });
@@ -139,6 +161,7 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
     // Second miss: calmly show the right answer, then move on. No "fail" sound.
     outcomes.current.push({ correct: false, tries, timeMs, targetMs: SPEED_TARGET_MS[round.kind] });
     setFeedback('reveal');
+    setFeedbackKind('reveal');
     setMood('idle');
     later(FEEDBACK_MS.reveal, advance);
   };
@@ -177,9 +200,45 @@ export function LevelPlayer({ levelId, profile }: { levelId: string; profile: Pr
         </IconButton>
       </header>
 
+      {!showIntro && (
+        <Instruction
+          segments={instructionFor(demoKind ? (demoRounds.get(demoKind) ?? round) : round)}
+          hint={demoKind ? 'Watch first: the hand shows you what to do.' : hintFor(round)}
+          feedback={feedbackKind ? FEEDBACK_TEXT[feedbackKind] : null}
+          onReplay={() => speak(instructionSpeech(spokenRound))}
+        />
+      )}
+
       <main className="level-stage">
         <AnimatePresence mode="wait">
-          {demoKind ? (
+          {showIntro ? (
+            <motion.div
+              key="intro"
+              className="intro-card"
+              data-testid="intro"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <span className="intro-icon">{level.icon}</span>
+              <h2>
+                Level {level.number}: {level.title}
+              </h2>
+              <p>{level.intro}</p>
+              <p className="muted">First, a hand will show you how to play. Then it is your turn!</p>
+              <IconButton
+                label="start"
+                variant="primary"
+                size={96}
+                onClick={() => setShowIntro(false)}
+                testId="intro-start"
+              >
+                <svg width="44" height="44" viewBox="0 0 24 24">
+                  <path d="M8 5l11 7-11 7z" fill="#fff" />
+                </svg>
+              </IconButton>
+            </motion.div>
+          ) : demoKind ? (
             <motion.div
               key={`demo-${demoKind}-${index}`}
               className="demo-wrap"

@@ -90,7 +90,7 @@ export function FacingRound({ round, onAnswer, demo, onDemoDone, feedback }: Rou
   return (
     <div className="round round--facing">
       <div className="prompt-card" data-testid="prompt" data-target={round.target}>
-        <HandIcon side={round.target} size={96} />
+        <HandIcon side={round.target} size={88} label />
       </div>
       <div className="facing-stage" data-view={round.view} style={{ width: STAGE_W, height: STAGE_H }}>
         {(['left', 'right'] as const).map((side, i) => (

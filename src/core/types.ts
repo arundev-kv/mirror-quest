@@ -40,6 +40,8 @@ export interface Settings {
   musicVolume: number;
   sfxVolume: number;
   muted: boolean;
+  /** Read instructions aloud (device speech voice, American English). */
+  voice: boolean;
 }
 
 export interface AppData {
