@@ -3,13 +3,20 @@
 A calm, offline learning game that helps kids aged 3–6 overcome **mirror writing**: reversed letters
 (b/d, p/q, S, Z, J…), digits (2, 3, 5, 7, 9…), signs, and left/right confusion.
 
-- 🖐️ **Level 1 – Left and Right:** tap the picture on your LEFT or RIGHT side (your left hand makes an "L"). The hint fades halfway.
-- ⚾ **Level 2 – b:** b on its own, as "stick, then bump": trace it, write it with a fading guide, then spot a backwards b.
-- Stages are sequenced with a learning-disability therapist's lens (see [docs/LEVEL_PLAN.md](docs/LEVEL_PLAN.md)).
+- **30 levels in 6 worlds**, sequenced with a learning-disability therapist's lens (see [docs/LEVEL_PLAN.md](docs/LEVEL_PLAN.md)):
+  1. 🌻 Meadow: my body's left and right, which way things go, where writing starts, the magic c turn.
+  2. ⛵ Lake: the stick family (l, t, b, h, n, r, p).
+  3. 🌲 Forest: the c family (c, o, e, a, d, g, q).
+  4. 🏘️ Village: digits 1–9.
+  5. 🏔️ Mountain hut: b or d, p or q, writing from memory. Opens once b, p, d and g/q are learned on two different days.
+  6. 🏰 Castle: s, z, j, tricky capitals, words and numbers left to right, a friend's left and right (age 6), grand review.
+- Round types: body warm-ups, tap a side, which way / same way, where to start, pick, right way or flipped, trace and
+  write (with memory writing), and words/numbers in order.
 - Each stage opens with a short intro that is read aloud. During play, cues are single words ("LEFT", "Trace b"),
   shown and spoken in an American English voice (the device's built-in voice, so it works offline). A ghost hand demonstrates first.
 - Handwriting is checked on the device (point-cloud recognizer) and **detects mirrored letters** specifically.
-- Scores: 70% accuracy + 30% speed, 1–3 stars, retries keep the best. The next level opens at 2 stars.
+- Scores: mostly accuracy, with a small speed share for taps only (0 / 10 / 15 / 20% at ages 3 / 4 / 5 / 6). 1–3 stars,
+  retries keep the best. The next level opens at 2 stars.
 - **30 minutes a day** per child, a gentle sunset countdown from 25 minutes, and a calm "see you tomorrow" screen.
   Resets at midnight. No unlock.
 - Several kids per device (name, age, avatar). A grown-ups area (hold 3 s + a sum) shows progress, most-reversed
