@@ -26,7 +26,14 @@ describe('storage', () => {
     const d = migrate({ profiles: [], settings: { musicVolume: 0.2, sfxVolume: 0.5, muted: false } }, 1);
     expect(d.settings.voice).toBe(true);
     expect(d.settings.musicVolume).toBe(0.2);
-    expect(d.schemaVersion).toBe(2);
+    expect(d.schemaVersion).toBe(3);
+  });
+  it('migrates v2 progress: the old level 2 (b) becomes level 7 and mastery days start empty', () => {
+    const lp = { bestScore: 80, bestStars: 2, attempts: 3, bestTimeMs: 1000, lastPlayedAt: 5 };
+    const p = { ...createProfile({ name: 'Ann', age: 4, avatarId: 'owl' }, 0, 'a'), levels: { L01: lp, L02: lp } };
+    const d = migrate({ profiles: [p], settings: {} }, 2);
+    expect(Object.keys(d.profiles[0].levels).sort()).toEqual(['L01', 'L07']);
+    expect(d.profiles[0].levels.L07).toEqual({ ...lp, masteredOn: [] });
   });
 
   it('rejects files that are not backups', () => {

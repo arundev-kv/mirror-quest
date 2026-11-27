@@ -11,6 +11,8 @@ export interface LevelProgress {
   /** Fastest completion of the best-scoring run. */
   bestTimeMs: number | null;
   lastPlayedAt: number;
+  /** Local dates (YYYY-MM-DD) on which the level's mastery criterion was met. Two = mastered. */
+  masteredOn: string[];
 }
 
 export interface DailyUsage {
