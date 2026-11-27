@@ -1,0 +1,83 @@
+import { expect, test } from '@playwright/test';
+import { createProfile, playLevel, seedUsage } from './helpers';
+
+test('create a profile and see it on the picker', async ({ page }) => {
+  await createProfile(page, 'Mia');
+  await page.getByTestId('map-profiles').click();
+  await expect(page.getByTestId('profile-Mia')).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId('profile-Mia')).toBeVisible(); // saved in localStorage
+});
+
+test('play level 1 perfectly, unlock level 2, then play level 2', async ({ page }) => {
+  await createProfile(page);
+  await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'false');
+  await page.getByTestId('level-1').click();
+  await expect(page.getByTestId('demo')).toBeVisible(); // ghost-hand demo first
+  await playLevel(page, true);
+  await expect(page.getByTestId('results')).toHaveAttribute('data-stars', '3');
+  await page.getByTestId('results-next').click();
+  await playLevel(page, true);
+  const score = Number(await page.getByTestId('results').getAttribute('data-score'));
+  expect(score).toBeGreaterThanOrEqual(70);
+  await page.getByTestId('results-map').click();
+  await expect(page.getByTestId('points')).not.toHaveText('0');
+});
+
+test('a retry keeps the best score', async ({ page }) => {
+  test.setTimeout(360_000); // a run with every answer missed twice is deliberately slow and calm
+  await createProfile(page);
+  await page.getByTestId('level-1').click();
+  await playLevel(page, true);
+  const best = await page.getByTestId('results').getAttribute('data-score');
+  await page.getByTestId('results-retry').click();
+  await playLevel(page, false);
+  await expect(page.getByTestId('best-kept')).toContainText(best!);
+  await page.getByTestId('results-map').click();
+  await expect(page.getByTestId('level-2')).toHaveAttribute('data-unlocked', 'true');
+});
+
+test('shows the sunset countdown after 25 minutes', async ({ page }) => {
+  await createProfile(page);
+  await seedUsage(page, 26);
+  await page.getByTestId('profile-Mia').click();
+  await expect(page.getByTestId('sunset')).toBeVisible();
+});
+
+test('locks for the day after 30 minutes, with no unlock', async ({ page }) => {
+  await createProfile(page);
+  await seedUsage(page, 30);
+  await page.getByTestId('profile-Mia').click();
+  await expect(page.getByTestId('sleep')).toBeVisible();
+  await expect(page.getByTestId('level-1')).toHaveCount(0);
+});
+
+test('parent gate and dashboard', async ({ page }) => {
+  await createProfile(page);
+  await page.getByTestId('map-profiles').click();
+  await page.getByTestId('parent-btn').click();
+  const hold = page.getByTestId('gate-hold');
+  const box = (await hold.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(3300);
+  await page.mouse.up();
+  const question = await page.getByText(/What is \d+ \+ \d+\?/).textContent();
+  const [, a, b] = question!.match(/(\d+) \+ (\d+)/)!;
+  await page.getByTestId(`gate-answer-${Number(a) + Number(b)}`).click();
+  await expect(page.getByTestId('report-Mia')).toBeVisible();
+});
+
+test('works offline after the first visit', async ({ page, context }) => {
+  await page.goto('/');
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload(); // now controlled by the service worker
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByText('Mirror Quest')).toBeVisible();
+  await createProfile(page, 'Offline');
+  await page.getByTestId('level-1').click();
+  await expect(page.getByTestId('level')).toBeVisible();
+});
