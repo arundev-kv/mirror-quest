@@ -7,7 +7,7 @@ export interface Answer {
   /** Don't count this as a try (e.g. an empty drawing). */
   ignore?: boolean;
   /** Extra feedback to show. */
-  feedback?: 'mirrored' | 'flipped' | 'shape';
+  feedback?: 'mirrored' | 'flipped' | 'shape' | 'start';
 }
 
 export type Feedback = null | 'correct' | 'tryAgain' | 'reveal';

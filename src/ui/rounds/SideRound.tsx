@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import type { Round } from '../../core/levels';
+import type { RoundOf } from '../../core/rounds';
 import type { Side } from '../../core/types';
 import { GhostHand } from '../components/GhostHand';
 import { HandIcon } from '../components/HandIcon';
 import type { RoundProps } from './types';
 
-type R = Extract<Round, { kind: 'side' }>;
+type R = RoundOf<'side'>;
 
 /** Tap the thing on MY left / right. */
 export function SideRound({ round, onAnswer, demo, onDemoDone, feedback }: RoundProps<R>) {

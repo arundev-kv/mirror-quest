@@ -22,15 +22,18 @@ export function Instruction({
         title="Tap to hear it again"
         style={{ cursor: onReplay ? 'pointer' : undefined }}
       >
-        {segments.map((s, i) =>
-          typeof s === 'string' ? (
-            <span key={i}>{s}</span>
-          ) : (
-            <strong key={i} className="side-word" style={{ color: SIDE_COLORS[s.side] }}>
-              {SIDE_WORD[s.side]}
-            </strong>
-          ),
-        )}
+        {segments.map((s, i) => (
+          <span key={i}>
+            {i > 0 && ' '}
+            {typeof s === 'string' ? (
+              s
+            ) : (
+              <strong className="side-word" style={{ color: SIDE_COLORS[s.side] }}>
+                {SIDE_WORD[s.side]}
+              </strong>
+            )}
+          </span>
+        ))}
       </p>
       <AnimatePresence mode="wait">
         {feedback ? (

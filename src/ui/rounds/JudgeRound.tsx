@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { AMBIGUOUS_MIRROR, getGlyph } from '../../core/glyphs';
-import type { Round } from '../../core/levels';
+import type { RoundOf } from '../../core/rounds';
 import { audio } from '../../audio/engine';
 import { GhostHand } from '../components/GhostHand';
 import { GlyphSvg } from '../components/GlyphSvg';
 import type { RoundProps } from './types';
 
-type R = Extract<Round, { kind: 'judge' }>;
+type R = RoundOf<'judge'>;
 
 /** Is this one facing the right way? Tap the thumbs-up, or tap flip to turn it around. */
 export function JudgeRound({ round, onAnswer, demo, onDemoDone, feedback }: RoundProps<R>) {

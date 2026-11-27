@@ -3,8 +3,9 @@ import { SIDE_COLORS } from './sideColors';
 
 /**
  * A hand held up with palm away, index finger up and thumb out.
- * The LEFT hand makes a proper "L" — the classic memory trick.
- * Left is always sage green; right is always sky blue (consistent colour anchors).
+ * The anchor is colour, not the "L" trick (that needs the letter L the right way round, which is what
+ * these children mix up): left is always grass green, right is always sky blue. The left hand wears
+ * a round sticker, like the one a grown-up puts on the child's left hand.
  */
 export function HandIcon({
   side,
@@ -30,17 +31,7 @@ export function HandIcon({
         <rect x="24" y="48" width="44" height="40" rx="14" fill={color} />
         {/* thumb sticking out to make the L */}
         <rect x="58" y="64" width="34" height="15" rx="7.5" fill={color} />
-        {side === 'left' && (
-          <path
-            d="M34 20 V78 H82"
-            stroke="#ffffff"
-            strokeOpacity="0.75"
-            strokeWidth="5"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        )}
+        {side === 'left' && <circle cx="46" cy="70" r="9" fill="#ffffff" fillOpacity="0.85" />}
       </g>
     </svg>
   );
